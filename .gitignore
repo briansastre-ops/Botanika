@@ -1,0 +1,43 @@
+# Dependencias
+node_modules/
+package-lock.json.bak
+
+# Variables de entorno y credenciales (Mercado Pago, tokens, etc.)
+.env
+.env.*
+!.env.example
+
+# Logs de Node / npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# Despliegue y Serverless (Vercel, Netlify, etc.)
+.vercel
+.netlify
+
+# Build y archivos temporales
+dist/
+build/
+out/
+.cache/
+.temp/
+.tmp/
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Editores e IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
