@@ -1,4 +1,5 @@
 const paymentService = require('../services/payment.service');
+const { supabase } = require('../config/supabase.config');
 
 class PaymentController {
     /**
@@ -7,7 +8,7 @@ class PaymentController {
      */
     async createPreference(req, res) {
         try {
-            const { items, shippingCost, payer, clientUrl } = req.body;
+            const { items, shippingCost, payer, clientUrl, orderId } = req.body;
 
             if (!items || !Array.isArray(items) || items.length === 0) {
                 return res.status(400).json({
@@ -22,8 +23,24 @@ class PaymentController {
                 items,
                 shippingCost: Number(shippingCost) || 0,
                 payer: payer || {},
-                clientUrl: originUrl
+                clientUrl: originUrl,
+                orderId: orderId || null
             });
+
+            // Si hay un orderId y supabase está configurado, asociamos el preferenceId a la orden
+            if (orderId && supabase) {
+                try {
+                    await supabase
+                        .from('orders')
+                        .update({ 
+                            preference_id: preference.id,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', orderId);
+                } catch (supaErr) {
+                    console.warn('⚠️ [Supabase] No se pudo guardar preference_id en orden:', supaErr.message);
+                }
+            }
 
             return res.status(200).json({
                 success: true,
@@ -31,7 +48,8 @@ class PaymentController {
                 initPoint: preference.init_point,
                 sandboxInitPoint: preference.sandbox_init_point,
                 checkoutUrl: preference.checkoutUrl,
-                isSandbox: preference.isSandbox
+                isSandbox: preference.isSandbox,
+                orderId: orderId || null
             });
         } catch (error) {
             console.error('Error al crear preferencia en Mercado Pago:', error);
@@ -79,6 +97,24 @@ class PaymentController {
                 try {
                     const paymentInfo = await paymentService.getPaymentById(paymentId);
                     console.log(`💳 [Mercado Pago Webhook] Pago ID ${paymentId}: estado="${paymentInfo.status}" (${paymentInfo.status_detail}) por $${paymentInfo.transaction_amount}`);
+                    
+                    // Si el pago tiene external_reference (orderId de Supabase) y tenemos supabase configurado:
+                    const externalRef = paymentInfo.external_reference;
+                    if (externalRef && supabase) {
+                        const newStatus = paymentInfo.status === 'approved' ? 'aprobado' : 
+                                          paymentInfo.status === 'rejected' ? 'rechazado' : 'pendiente';
+                        
+                        await supabase
+                            .from('orders')
+                            .update({
+                                status: newStatus,
+                                payment_id: String(paymentId),
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq('id', externalRef);
+                        
+                        console.log(`✅ [Supabase Sync] Orden ${externalRef} actualizada a "${newStatus}" vía Webhook.`);
+                    }
                 } catch (fetchError) {
                     console.warn(`⚠️ [Mercado Pago Webhook] No se pudo obtener detalle del pago ${paymentId}:`, fetchError.message);
                 }

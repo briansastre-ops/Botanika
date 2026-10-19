@@ -35,9 +35,10 @@ class PaymentService {
      * @param {number} [params.shippingCost] - Costo de envío seleccionado.
      * @param {Object} [params.payer] - Información del cliente comprador.
      * @param {string} [params.clientUrl] - Origen del frontend para back_urls.
+     * @param {string|number} [params.orderId] - ID de la orden en Supabase.
      * @returns {Promise<{ id: string, init_point: string, sandbox_init_point: string, checkoutUrl: string, isSandbox: boolean }>}
      */
-    async createPreference({ items, shippingCost = 0, payer = {}, clientUrl = null }) {
+    async createPreference({ items, shippingCost = 0, payer = {}, clientUrl = null, orderId = null }) {
         if (!items || !Array.isArray(items) || items.length === 0) {
             throw new Error('El carrito no contiene productos válidos.');
         }
@@ -108,6 +109,14 @@ class PaymentService {
             },
             statement_descriptor: 'BOTANIKA'
         };
+
+        // Si recibimos un orderId de Supabase, lo vinculamos a Mercado Pago para conciliación
+        if (orderId) {
+            preferenceBody.external_reference = String(orderId);
+            preferenceBody.metadata = {
+                order_id: String(orderId)
+            };
+        }
 
         // Configuración de Webhook (notification_url):
         // Mercado Pago exige una URL pública accesible (HTTPS o túnel como ngrok).

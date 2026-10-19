@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Botanika & Co. | Plantas y Accesorios</title>
+    <title>Botanika & Co. | Plantas de Interior y Accesorios de Diseño</title>
+    <meta name="description" content="Tienda online de plantas de interior curadas, macetas de autor artesanales y kits para principiantes. Envíos climatizados en 48hs con garantía verde.">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -37,6 +39,8 @@
     <link rel="stylesheet" href="styles.css">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase JS Client v2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body class="bg-botanika-50 text-botanika-800 font-sans antialiased selection:bg-botanika-200">
@@ -44,49 +48,59 @@
     <!-- App Container -->
     <div id="app" class="min-h-screen flex flex-col justify-between">
 
-        <!-- Header / Navegación -->
+        <!-- Header / Navegación Principal -->
         <header class="sticky top-0 z-50 bg-botanika-50/90 backdrop-blur-md border-b border-botanika-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
 
                 <!-- Mobile Menu Button -->
                 <button onclick="toggleMobileMenu()"
-                    class="md:hidden p-2 text-botanika-800 hover:text-botanika-600 transition">
+                    class="md:hidden p-2 text-botanika-800 hover:text-botanika-600 transition"
+                    aria-label="Abrir menú">
                     <i data-lucide="menu" class="w-6 h-6"></i>
                 </button>
 
                 <!-- Logo -->
                 <div class="flex items-center space-x-2 cursor-pointer" onclick="navigateTo('home')">
                     <span
-                        class="w-8 h-8 rounded-full bg-botanika-600 flex items-center justify-center text-white font-serif font-bold text-lg">B</span>
+                        class="w-9 h-9 rounded-full bg-botanika-600 flex items-center justify-center text-white font-serif font-bold text-lg shadow-sm">B</span>
                     <span class="font-serif tracking-wider text-xl font-medium">BOTANIKA <span
-                            class="text-botanika-terracota font-sans text-xs uppercase tracking-widest block -mt-1">Studio
+                            class="text-botanika-terracota font-sans text-xs uppercase tracking-widest block -mt-1 font-semibold">Studio
                             & Plantas</span></span>
                 </div>
 
                 <!-- Desktop Navigation Links -->
-                <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                <nav class="hidden lg:flex items-center space-x-7 text-sm font-medium">
                     <button onclick="navigateTo('home')"
-                        class="hover:text-botanika-600 transition pb-1 border-b-2 border-transparent hover:border-botanika-600">Home</button>
+                        class="hover:text-botanika-600 transition pb-1 border-b-2 border-transparent hover:border-botanika-600">Inicio</button>
+                    <button onclick="goToLandingSection('beneficios')"
+                        class="hover:text-botanika-600 transition pb-1 border-b-2 border-transparent hover:border-botanika-600">Beneficios</button>
+                    <button onclick="goToLandingSection('como-funciona')"
+                        class="hover:text-botanika-600 transition pb-1 border-b-2 border-transparent hover:border-botanika-600">Cómo Funciona</button>
+                    <button onclick="goToLandingSection('productos')"
+                        class="hover:text-botanika-600 transition pb-1 border-b-2 border-transparent hover:border-botanika-600 font-semibold text-botanika-600">Comprar</button>
                     <button onclick="navigateTo('catalog')"
                         class="hover:text-botanika-600 transition pb-1 border-b-2 border-transparent hover:border-botanika-600">Catálogo</button>
+                    <button onclick="goToLandingSection('faq')"
+                        class="hover:text-botanika-600 transition pb-1 border-b-2 border-transparent hover:border-botanika-600">FAQ</button>
                     <button onclick="navigateTo('styleguide')"
                         class="hover:text-botanika-600 transition pb-1 border-b-2 border-transparent hover:border-botanika-600 text-botanika-terracota">Guía
                         de Estilos</button>
                 </nav>
 
-                <!-- Icons Action Bar -->
-                <div class="flex items-center space-x-4">
-                    <button onclick="navigateTo('profile')"
-                        class="p-2 hover:bg-botanika-100 rounded-full transition relative text-botanika-800"
-                        title="Mi Cuenta">
-                        <i data-lucide="user" class="w-5 h-5"></i>
-                    </button>
+                <!-- Right Action Bar (Auth Buttons + Cart) -->
+                <div class="flex items-center space-x-3 sm:space-x-4">
+                    <!-- Dynamic Auth Container -->
+                    <div id="auth-header-container" class="flex items-center space-x-2">
+                        <!-- Inyectado dinámicamente según sesión de Supabase -->
+                    </div>
+
+                    <!-- Cart Button -->
                     <button onclick="navigateTo('cart')"
-                        class="p-2 hover:bg-botanika-100 rounded-full transition relative text-botanika-800"
-                        title="Carrito">
+                        class="p-2.5 hover:bg-botanika-100 rounded-full transition relative text-botanika-800"
+                        title="Carrito de compras" aria-label="Carrito de compras">
                         <i data-lucide="shopping-bag" class="w-5 h-5"></i>
                         <span id="cart-badge"
-                            class="absolute top-1 right-1 bg-botanika-terracota text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">2</span>
+                            class="absolute top-1 right-1 bg-botanika-terracota text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">0</span>
                     </button>
                 </div>
             </div>
@@ -95,11 +109,22 @@
             <div id="mobile-menu"
                 class="hidden md:hidden bg-botanika-100 border-b border-botanika-200 px-6 py-4 space-y-3">
                 <button onclick="navigateTo('home'); toggleMobileMenu();"
-                    class="block w-full text-left font-medium py-1">Home</button>
+                    class="block w-full text-left font-medium py-1">Inicio</button>
+                <button onclick="goToLandingSection('beneficios'); toggleMobileMenu();"
+                    class="block w-full text-left font-medium py-1">Beneficios</button>
+                <button onclick="goToLandingSection('como-funciona'); toggleMobileMenu();"
+                    class="block w-full text-left font-medium py-1">Cómo Funciona</button>
+                <button onclick="goToLandingSection('productos'); toggleMobileMenu();"
+                    class="block w-full text-left font-semibold text-botanika-600 py-1">Productos & Compra</button>
                 <button onclick="navigateTo('catalog'); toggleMobileMenu();"
-                    class="block w-full text-left font-medium py-1">Catálogo</button>
+                    class="block w-full text-left font-medium py-1">Catálogo Completo</button>
+                <button onclick="goToLandingSection('faq'); toggleMobileMenu();"
+                    class="block w-full text-left font-medium py-1">Preguntas Frecuentes</button>
                 <button onclick="navigateTo('styleguide'); toggleMobileMenu();"
                     class="block w-full text-left font-medium py-1 text-botanika-terracota">Guía de Estilos</button>
+                <div id="auth-mobile-container" class="pt-3 border-t border-botanika-200">
+                    <!-- Inyectado dinámicamente para móviles -->
+                </div>
             </div>
         </header>
 
@@ -110,9 +135,103 @@
 
         <!-- Toast Notification Container -->
         <div id="toast"
-            class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-botanika-800 text-white px-6 py-3 rounded-lg shadow-xl flex items-center space-x-3">
-            <i data-lucide="check-circle" class="w-5 h-5 text-bot50"></i>
-            <span id="toast-message" class="text-sm font-medium">Producto agregado al carrito</span>
+            class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-botanika-800 text-white px-6 py-3.5 rounded-xl shadow-2xl flex items-center space-x-3 max-w-sm pointer-events-none">
+            <i data-lucide="check-circle" class="w-5 h-5 text-botanika-200 flex-shrink-0"></i>
+            <span id="toast-message" class="text-sm font-medium leading-tight">Producto agregado al carrito</span>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- MODAL DE AUTENTICACIÓN SUPABASE (Login & Registro)                         -->
+        <!-- ========================================================================= -->
+        <div id="auth-modal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-botanika-800/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+            <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-botanika-200 overflow-hidden transform scale-95 transition-transform duration-300"
+                id="auth-modal-card">
+                
+                <!-- Modal Header -->
+                <div class="bg-botanika-100 p-6 flex justify-between items-center border-b border-botanika-200">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-7 h-7 rounded-full bg-botanika-600 flex items-center justify-center text-white font-serif font-bold text-sm">B</span>
+                        <h3 class="font-serif text-xl font-medium" id="auth-modal-title">Iniciar Sesión</h3>
+                    </div>
+                    <button onclick="closeAuthModal()" class="p-1 rounded-full text-botanika-700 hover:text-botanika-800 hover:bg-botanika-200 transition" aria-label="Cerrar modal">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-6 sm:p-8 space-y-5">
+                    
+                    <!-- Tabs Selector -->
+                    <div class="grid grid-cols-2 p-1 bg-botanika-50 rounded-xl border border-botanika-200 text-sm font-medium">
+                        <button id="auth-tab-login" onclick="switchAuthTab('login')" class="py-2 rounded-lg bg-white shadow-sm text-botanika-800 transition">
+                            Ingresar
+                        </button>
+                        <button id="auth-tab-register" onclick="switchAuthTab('register')" class="py-2 rounded-lg text-botanika-700 hover:text-botanika-800 transition">
+                            Registrarse
+                        </button>
+                    </div>
+
+                    <!-- Mensaje de aviso de ruta protegida -->
+                    <div id="auth-prompt-notice" class="hidden p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start space-x-2">
+                        <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"></i>
+                        <span>Para continuar con tu compra en Botanika, inicia sesión o crea tu cuenta con Supabase Auth.</span>
+                    </div>
+
+                    <!-- Error Alert -->
+                    <div id="auth-error-box" class="hidden p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start space-x-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5"></i>
+                        <span id="auth-error-message">Error de autenticación</span>
+                    </div>
+
+                    <!-- Success Alert -->
+                    <div id="auth-success-box" class="hidden p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-start space-x-2">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5"></i>
+                        <span id="auth-success-message">¡Cuenta creada exitosamente!</span>
+                    </div>
+
+                    <!-- Auth Form -->
+                    <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                        
+                        <!-- Campo Nombre (Solo registro) -->
+                        <div id="auth-name-group" class="hidden">
+                            <label class="text-xs font-bold uppercase tracking-wider text-botanika-700 block mb-1.5" for="auth-name-input">Nombre Completo</label>
+                            <input type="text" id="auth-name-input" placeholder="Ej. Camila Morales" class="w-full bg-botanika-50 border border-botanika-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-botanika-600 transition">
+                        </div>
+
+                        <!-- Campo Email -->
+                        <div>
+                            <label class="text-xs font-bold uppercase tracking-wider text-botanika-700 block mb-1.5" for="auth-email-input">Correo Electrónico</label>
+                            <input type="email" id="auth-email-input" required placeholder="tu-email@correo.com" class="w-full bg-botanika-50 border border-botanika-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-botanika-600 transition">
+                        </div>
+
+                        <!-- Campo Contraseña -->
+                        <div>
+                            <label class="text-xs font-bold uppercase tracking-wider text-botanika-700 block mb-1.5" for="auth-password-input">Contraseña (Mín. 6 caracteres)</label>
+                            <input type="password" id="auth-password-input" required minlength="6" placeholder="••••••••" class="w-full bg-botanika-50 border border-botanika-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-botanika-600 transition">
+                        </div>
+
+                        <!-- Campo Confirmar Contraseña (Solo registro) -->
+                        <div id="auth-confirm-group" class="hidden">
+                            <label class="text-xs font-bold uppercase tracking-wider text-botanika-700 block mb-1.5" for="auth-confirm-input">Confirmar Contraseña</label>
+                            <input type="password" id="auth-confirm-input" minlength="6" placeholder="••••••••" class="w-full bg-botanika-50 border border-botanika-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-botanika-600 transition">
+                        </div>
+
+                        <!-- Botón Submit -->
+                        <button type="submit" id="auth-submit-btn" class="w-full bg-botanika-600 hover:bg-botanika-700 text-white rounded-xl py-3.5 text-sm font-semibold transition flex items-center justify-center space-x-2 shadow-sm">
+                            <span id="auth-submit-text">Iniciar Sesión</span>
+                        </button>
+                    </form>
+
+                    <!-- Switch Tab Footer Prompt -->
+                    <div class="text-center text-xs text-botanika-700 pt-2 border-t border-botanika-100">
+                        <span id="auth-switch-prompt">¿No tienes cuenta todavía?</span>
+                        <button type="button" id="auth-switch-link" onclick="toggleAuthMode()" class="text-botanika-600 font-semibold underline hover:text-botanika-800 ml-1">
+                            Regístrate gratis
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Footer -->
@@ -121,73 +240,70 @@
                 <div class="space-y-4">
                     <div class="flex items-center space-x-2">
                         <span
-                            class="w-6 h-6 rounded-full bg-botanika-600 flex items-center justify-center text-white font-serif font-bold text-sm">B</span>
-                        <span class="font-serif tracking-wider text-lg font-medium">BOTANIKA</span>
+                            class="w-7 h-7 rounded-full bg-botanika-600 flex items-center justify-center text-white font-serif font-bold text-sm">B</span>
+                        <span class="font-serif tracking-wider text-lg font-medium">BOTANIKA & CO.</span>
                     </div>
                     <p class="text-sm text-botanika-700 leading-relaxed">
-                        Llenamos de vida y calma tus espacios con plantas seleccionadas y macetas de diseño artesanal.
+                        Llenamos de vida y calma tus espacios con plantas seleccionadas, macetas de diseño artesanal y pasarela de pago segura.
                     </p>
-                    <div class="flex space-x-4 pt-2">
-                        <a href="#"
-                            class="w-9 h-9 rounded-full bg-botanika-200 flex items-center justify-center hover:bg-botanika-600 hover:text-white transition"><i
-                                data-lucide="instagram" class="w-4 h-4"></i></a>
-                        <a href="#"
-                            class="w-9 h-9 rounded-full bg-botanika-200 flex items-center justify-center hover:bg-botanika-600 hover:text-white transition"><i
-                                data-lucide="facebook" class="w-4 h-4"></i></a>
-                        <a href="#"
-                            class="w-9 h-9 rounded-full bg-botanika-200 flex items-center justify-center hover:bg-botanika-600 hover:text-white transition"><i
-                                data-lucide="pinboard" class="w-4 h-4"></i></a>
+                    <div class="flex space-x-3 pt-2">
+                        <a href="https://instagram.com" target="_blank" rel="noopener"
+                            class="w-9 h-9 rounded-full bg-botanika-200 flex items-center justify-center hover:bg-botanika-600 hover:text-white transition" aria-label="Instagram">
+                            <i data-lucide="instagram" class="w-4 h-4"></i>
+                        </a>
+                        <a href="https://github.com/briansastre-ops/Botanika" target="_blank" rel="noopener"
+                            class="w-9 h-9 rounded-full bg-botanika-200 flex items-center justify-center hover:bg-botanika-600 hover:text-white transition" aria-label="GitHub del proyecto">
+                            <i data-lucide="github" class="w-4 h-4"></i>
+                        </a>
                     </div>
                 </div>
                 <div>
-                    <h4 class="font-medium mb-4 text-sm tracking-wider uppercase">Categorías</h4>
+                    <h4 class="font-medium mb-4 text-sm tracking-wider uppercase">Navegación</h4>
                     <ul class="space-y-2 text-sm text-botanika-700">
-                        <li><a href="#" onclick="navigateTo('catalog')"
-                                class="hover:text-botanika-600 transition">Plantas de Interior</a></li>
-                        <li><a href="#" onclick="navigateTo('catalog')"
-                                class="hover:text-botanika-600 transition">Macetas y Soportes</a></li>
-                        <li><a href="#" onclick="navigateTo('catalog')"
-                                class="hover:text-botanika-600 transition">Sustratos & Nutrientes</a></li>
-                        <li><a href="#" onclick="navigateTo('catalog')" class="hover:text-botanika-600 transition">Kits
-                                para Principiantes</a></li>
+                        <li><a href="#" onclick="navigateTo('home')" class="hover:text-botanika-600 transition">Inicio / Landing</a></li>
+                        <li><a href="#" onclick="goToLandingSection('beneficios')" class="hover:text-botanika-600 transition">Beneficios de Compra</a></li>
+                        <li><a href="#" onclick="goToLandingSection('como-funciona')" class="hover:text-botanika-600 transition">Cómo Funciona</a></li>
+                        <li><a href="#" onclick="goToLandingSection('productos')" class="hover:text-botanika-600 transition">Planes & Productos</a></li>
+                        <li><a href="#" onclick="navigateTo('catalog')" class="hover:text-botanika-600 transition">Catálogo Completo</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-medium mb-4 text-sm tracking-wider uppercase">Ayuda & Cuidado</h4>
                     <ul class="space-y-2 text-sm text-botanika-700">
-                        <li><a href="#" class="hover:text-botanika-600 transition">Guía de Riego</a></li>
-                        <li><a href="#" class="hover:text-botanika-600 transition">Envíos y Entregas</a></li>
-                        <li><a href="#" class="hover:text-botanika-600 transition">Cambios y Devoluciones</a></li>
-                        <li><a href="#" class="hover:text-botanika-600 transition">Preguntas Frecuentes</a></li>
+                        <li><a href="#" onclick="goToLandingSection('faq')" class="hover:text-botanika-600 transition">Preguntas Frecuentes</a></li>
+                        <li><a href="#" onclick="showToast('Envíos refrigerados en 48hs hábiles')" class="hover:text-botanika-600 transition">Envíos Especiales</a></li>
+                        <li><a href="#" onclick="showToast('Garantía de adaptación de 30 días')" class="hover:text-botanika-600 transition">Garantía Verde</a></li>
+                        <li><a href="#" onclick="navigateTo('styleguide')" class="hover:text-botanika-600 transition">Design System UI/UX</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-medium mb-4 text-sm tracking-wider uppercase">Newsletter</h4>
-                    <p class="text-sm text-botanika-700 mb-3">Recibe tips de botánica urbana y 10% OFF en tu primera
-                        compra.</p>
-                    <form onsubmit="event.preventDefault(); showToast('¡Gracias por suscribirte!');"
-                        class="flex flex-col space-y-2">
-                        <input type="email" placeholder="Tu correo electrónico"
-                            class="bg-botanika-50 border border-botanika-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-botanika-600"
-                            required>
-                        <button type="submit"
-                            class="bg-botanika-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-botanika-700 transition">Suscribirme</button>
-                    </form>
+                    <h4 class="font-medium mb-4 text-sm tracking-wider uppercase">Equipo & Proyecto</h4>
+                    <p class="text-xs text-botanika-700 mb-2 leading-relaxed">
+                        <strong>BugsBasters</strong> — Programación IV.<br>
+                        Desarrollo Full Stack con Supabase (Auth + PostgreSQL) y Checkout Pro de Mercado Pago.
+                    </p>
+                    <div class="mt-4 p-3 bg-botanika-50 rounded-xl border border-botanika-200 text-[11px] text-botanika-700 space-y-1">
+                        <p class="font-semibold text-botanika-800">Stack Tecnológico:</p>
+                        <p>• Auth & Postgres: Supabase RLS</p>
+                        <p>• Pagos: Mercado Pago Sandbox</p>
+                        <p>• Servidor: Node.js / Express / Vercel</p>
+                    </div>
                 </div>
             </div>
             <div
                 class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-botanika-200 text-xs text-botanika-700 text-center flex flex-col sm:flex-row justify-between items-center">
-                <p>&copy; 2026 Botanika & Co. Todos los derechos reservados.</p>
+                <p>&copy; 2026 Botanika & Co. — Proyecto Académico Programación IV.</p>
                 <div class="flex space-x-6 mt-4 sm:mt-0">
-                    <a href="#" class="hover:underline">Privacidad</a>
-                    <a href="#" class="hover:underline">Términos y Condiciones</a>
+                    <span class="text-botanika-600 font-medium">BugsBasters Team</span>
+                    <a href="https://github.com/briansastre-ops/Botanika" target="_blank" class="hover:underline">Repositorio GitHub</a>
                 </div>
             </div>
         </footer>
 
     </div>
 
-    <!-- External Script -->
+    <!-- Scripts de la Aplicación -->
+    <script src="supabase-client.js"></script>
     <script src="script.js"></script>
 </body>
 
