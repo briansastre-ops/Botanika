@@ -7,6 +7,27 @@
  * =============================================================================
  */
 
+// =============================================================================
+// PUENTE DE RETORNO AUTOMÁTICO (Mercado Pago HTTPS -> Localhost)
+// =============================================================================
+(function checkReturnToBounce() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const returnTo = params.get('return_to');
+        if (returnTo) {
+            const dest = new URL(returnTo, window.location.origin);
+            params.forEach((val, key) => {
+                if (key !== 'return_to') {
+                    dest.searchParams.set(key, val);
+                }
+            });
+            window.location.replace(dest.toString());
+        }
+    } catch (e) {
+        console.warn('⚠️ Error en puente de retorno:', e);
+    }
+})();
+
 /**
  * @typedef {Object} Product
  * @property {number} id - Identificador único del producto.
@@ -267,10 +288,10 @@ function updateAuthUI() {
         }
     } else {
         const unauthHtml = `
-            <button onclick="openAuthModal('login')" class="text-xs font-semibold px-3 py-2 text-botanika-800 hover:text-botanika-600 transition">
+            <button id="btn-header-login" onclick="openAuthModal('login')" class="text-xs font-semibold px-3 py-2 text-botanika-800 hover:text-botanika-600 transition">
                 Iniciar sesión
             </button>
-            <button onclick="openAuthModal('register')" class="text-xs font-semibold px-3.5 py-2 bg-botanika-600 hover:bg-botanika-700 text-white rounded-xl transition shadow-sm">
+            <button id="btn-header-register" onclick="openAuthModal('register')" class="text-xs font-semibold px-3.5 py-2 bg-botanika-600 hover:bg-botanika-700 text-white rounded-xl transition shadow-sm">
                 Registrarse
             </button>
         `;
@@ -429,28 +450,57 @@ async function handleAuthSubmit(event) {
 
     try {
         if (authModalMode === 'register') {
-            await window.botanikaSupabase.signUp(email, password, fullName);
-            showToast('¡Registro exitoso con Supabase!');
+            const result = await window.botanikaSupabase.signUp(email, password, fullName);
+
+            if (result && result.session) {
+                currentUser = result.session.user || await window.botanikaSupabase.getUser();
+                updateAuthUI();
+                closeAuthModal();
+                showToast('¡Registro exitoso en Botanika!');
+
+                // Ejecutar acción pendiente tras registro exitoso
+                if (pendingAction) {
+                    const action = pendingAction;
+                    pendingAction = null;
+                    if (action.type === 'checkout') {
+                        navigateTo('checkout');
+                    } else if (action.type === 'pay_mercadopago') {
+                        handleMercadoPagoPayment();
+                    } else if (action.type === 'direct_buy' && action.productId) {
+                        handleDirectBuy(action.productId);
+                    }
+                }
+            } else {
+                // Cuenta creada pero requiere confirmación por email (Supabase default)
+                const successBox = document.getElementById('auth-success-box');
+                const successMsg = document.getElementById('auth-success-message');
+                if (successBox && successMsg) {
+                    successMsg.innerHTML = `<strong>¡Cuenta creada!</strong> Te enviamos un correo de confirmación a <u>${email}</u>. Por favor revisa tu bandeja para verificarla e iniciar sesión.`;
+                    successBox.classList.remove('hidden');
+                }
+                switchAuthTab('login');
+                showToast('Verifica tu correo para activar tu cuenta.');
+            }
         } else {
             await window.botanikaSupabase.signIn(email, password);
             showToast('¡Bienvenido de vuelta a Botanika!');
-        }
 
-        // Obtener usuario actualizado
-        currentUser = await window.botanikaSupabase.getUser();
-        updateAuthUI();
-        closeAuthModal();
+            // Obtener usuario actualizado
+            currentUser = await window.botanikaSupabase.getUser();
+            updateAuthUI();
+            closeAuthModal();
 
-        // Ejecutar acción pendiente tras login exitoso (Ruta Protegida)
-        if (pendingAction) {
-            const action = pendingAction;
-            pendingAction = null;
-            if (action.type === 'checkout') {
-                navigateTo('checkout');
-            } else if (action.type === 'pay_mercadopago') {
-                handleMercadoPagoPayment();
-            } else if (action.type === 'direct_buy' && action.productId) {
-                handleDirectBuy(action.productId);
+            // Ejecutar acción pendiente tras login exitoso (Ruta Protegida)
+            if (pendingAction) {
+                const action = pendingAction;
+                pendingAction = null;
+                if (action.type === 'checkout') {
+                    navigateTo('checkout');
+                } else if (action.type === 'pay_mercadopago') {
+                    handleMercadoPagoPayment();
+                } else if (action.type === 'direct_buy' && action.productId) {
+                    handleDirectBuy(action.productId);
+                }
             }
         }
     } catch (err) {
@@ -720,7 +770,7 @@ async function handlePaymentReturnAndInit() {
         return;
     } else if (status === 'failure' || status === 'rejected') {
         if (lastOrderId) {
-            window.botanikaSupabase.updateOrderStatus(lastOrderId, 'rechazado', paymentId);
+            await window.botanikaSupabase.updateOrderStatus(lastOrderId, 'rechazado', paymentId);
         }
         navigateTo('cart');
         showToast('El pago en Mercado Pago fue cancelado o rechazado.');
@@ -728,7 +778,7 @@ async function handlePaymentReturnAndInit() {
         return;
     } else if (status === 'pending') {
         if (lastOrderId) {
-            window.botanikaSupabase.updateOrderStatus(lastOrderId, 'pendiente', paymentId);
+            await window.botanikaSupabase.updateOrderStatus(lastOrderId, 'pendiente', paymentId);
         }
         navigateTo('profile');
         showToast('Tu pago con Mercado Pago se encuentra en proceso.');
@@ -1012,7 +1062,7 @@ function renderHome() {
                                 <span class="font-serif font-bold text-2xl text-botanika-800">$${p.price.toLocaleString()}</span>
                             </div>
 
-                            <button onclick="handleDirectBuy(${p.id})" class="w-full bg-botanika-600 hover:bg-botanika-700 text-white font-semibold py-3 rounded-xl transition text-sm flex items-center justify-center space-x-2 shadow-sm">
+                            <button id="btn-buy-product-${p.id}" onclick="handleDirectBuy(${p.id})" class="w-full bg-botanika-600 hover:bg-botanika-700 text-white font-semibold py-3 rounded-xl transition text-sm flex items-center justify-center space-x-2 shadow-sm">
                                 <i data-lucide="shopping-bag" class="w-4 h-4"></i>
                                 <span>Comprar Ahora</span>
                             </button>
@@ -1796,8 +1846,15 @@ if (window.botanikaSupabase) {
     });
 }
 
+async function startApp() {
+    if (window.botanikaSupabase && typeof window.botanikaSupabase.waitForSession === 'function') {
+        await window.botanikaSupabase.waitForSession();
+    }
+    await handlePaymentReturnAndInit();
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', handlePaymentReturnAndInit);
+    document.addEventListener('DOMContentLoaded', startApp);
 } else {
-    handlePaymentReturnAndInit();
+    startApp();
 }
