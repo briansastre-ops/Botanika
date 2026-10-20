@@ -204,37 +204,84 @@ let authModalMode = 'login';
 let openFaqIndex = 0;
 
 // =============================================================================
-// ESTADO Y DEFINICIÓN DEL CONFIGURADOR 2D "ARMÁ TU MACETA"
+// ESTADO Y DEFINICIÓN DEL CONFIGURADOR 2D FOTORREALISTA "ARMÁ TU MACETA"
 // =============================================================================
+
+/**
+ * Mapa centralizado de imágenes fotorrealistas WebP para el configurador.
+ * Nomenclatura: [acabado]__[planta] (-1000.webp para zoom/desktop, -600.webp para mobile/thumb).
+ */
+const CONFIGURATOR_IMAGES = {
+    'terracota__monstera': {
+        key: 'terracota__monstera',
+        alt: 'Monstera Deliciosa en maceta de Terracota Artesanal',
+        base: 'assets/configurador/terracota__monstera'
+    },
+    'terracota__ficus': {
+        key: 'terracota__ficus',
+        alt: 'Ficus Lyrata en maceta de Terracota Artesanal',
+        base: 'assets/configurador/terracota__ficus'
+    },
+    'terracota__haworthia': {
+        key: 'terracota__haworthia',
+        alt: 'Haworthia Cebra en maceta de Terracota Artesanal',
+        base: 'assets/configurador/terracota__haworthia'
+    },
+    'blanca__monstera': {
+        key: 'blanca__monstera',
+        alt: 'Monstera Deliciosa en maceta de Cerámica Blanca Esmaltada',
+        base: 'assets/configurador/blanca__monstera'
+    },
+    'blanca__ficus': {
+        key: 'blanca__ficus',
+        alt: 'Ficus Lyrata en maceta de Cerámica Blanca Esmaltada',
+        base: 'assets/configurador/blanca__ficus'
+    },
+    'blanca__haworthia': {
+        key: 'blanca__haworthia',
+        alt: 'Haworthia Cebra en maceta de Cerámica Blanca Esmaltada',
+        base: 'assets/configurador/blanca__haworthia'
+    },
+    'gris__monstera': {
+        key: 'gris__monstera',
+        alt: 'Monstera Deliciosa en maceta de Gris Cálido Mineral',
+        base: 'assets/configurador/gris__monstera'
+    },
+    'gris__ficus': {
+        key: 'gris__ficus',
+        alt: 'Ficus Lyrata en maceta de Gris Cálido Mineral',
+        base: 'assets/configurador/gris__ficus'
+    },
+    'gris__haworthia': {
+        key: 'gris__haworthia',
+        alt: 'Haworthia Cebra en maceta de Gris Cálido Mineral',
+        base: 'assets/configurador/gris__haworthia'
+    }
+};
+
 const POT_FINISHES = {
     terracota: {
+        id: 'terracota',
         name: 'Terracota Artesanal',
         basePrice: 12500,
         hex: '#D07A58',
-        bodyGradient: 'url(#pot-grad-terracota)',
-        rimColor: '#E48B69',
-        innerColor: '#4A3428',
-        specularOpacity: '0.12',
+        thumb: 'assets/configurador/terracota__monstera-600.webp',
         textureText: 'Barro cocido poroso tradicional con secado artesanal al sol. Favorece la oxigenación y previene el encharcamiento.'
     },
     blanca: {
+        id: 'blanca',
         name: 'Cerámica Blanca Esmaltada',
         basePrice: 14900,
         hex: '#F7F6F2',
-        bodyGradient: 'url(#pot-grad-blanca)',
-        rimColor: '#FFFFFF',
-        innerColor: '#3A3A36',
-        specularOpacity: '0.28',
+        thumb: 'assets/configurador/blanca__monstera-600.webp',
         textureText: 'Gres cerámico horneado a 1200°C con esmalte satinado suave. A prueba de rayaduras y fácil de limpiar.'
     },
     gris: {
+        id: 'gris',
         name: 'Gris Cálido Mineral',
         basePrice: 15200,
         hex: '#7A827B',
-        bodyGradient: 'url(#pot-grad-gris)',
-        rimColor: '#9BA39C',
-        innerColor: '#2E3330',
-        specularOpacity: '0.18',
+        thumb: 'assets/configurador/gris__monstera-600.webp',
         textureText: 'Compuesto mineral contemporáneo de tacto sedoso mate. Resistencia térmica y peso equilibrado.'
     }
 };
@@ -249,67 +296,23 @@ const POT_PLANTS = {
     monstera: {
         id: 'monstera',
         name: 'Monstera Deliciosa',
+        shortName: 'Monstera',
         desc: 'Hojas costilladas tropicales de rápido desarrollo.',
-        svgPath: `
-            <g transform="translate(10, 0)">
-                <!-- Tallos -->
-                <path d="M 120 180 Q 115 110 100 40" stroke="#3D5A45" stroke-width="6" fill="none" stroke-linecap="round"/>
-                <path d="M 120 180 Q 80 130 50 85" stroke="#3D5A45" stroke-width="5" fill="none" stroke-linecap="round"/>
-                <path d="M 120 180 Q 155 125 180 80" stroke="#3D5A45" stroke-width="5" fill="none" stroke-linecap="round"/>
-                <!-- Hoja Central Monstera -->
-                <path d="M 100 40 C 70 30 65 70 85 95 C 60 85 55 115 80 135 C 90 145 110 140 120 125 C 130 140 150 145 160 135 C 185 115 180 85 155 95 C 175 70 170 30 140 40 C 120 20 110 20 100 40 Z" fill="#526E5D"/>
-                <!-- Perforaciones Monstera -->
-                <ellipse cx="105" cy="70" rx="4" ry="12" transform="rotate(-20 105 70)" fill="#FAF8F5"/>
-                <ellipse cx="135" cy="70" rx="4" ry="12" transform="rotate(20 135 70)" fill="#FAF8F5"/>
-                <ellipse cx="95" cy="105" rx="5" ry="15" transform="rotate(-35 95 105)" fill="#FAF8F5"/>
-                <ellipse cx="145" cy="105" rx="5" ry="15" transform="rotate(35 145 105)" fill="#FAF8F5"/>
-                <!-- Hoja Izquierda -->
-                <path d="M 50 85 C 25 75 25 110 45 130 C 65 145 80 130 75 110 C 80 90 65 75 50 85 Z" fill="#435B4C"/>
-                <ellipse cx="48" cy="105" rx="3" ry="10" transform="rotate(-25 48 105)" fill="#FAF8F5"/>
-                <!-- Hoja Derecha -->
-                <path d="M 180 80 C 205 70 205 105 185 125 C 165 140 150 125 155 105 C 150 85 165 70 180 80 Z" fill="#435B4C"/>
-                <ellipse cx="182" cy="100" rx="3" ry="10" transform="rotate(25 182 100)" fill="#FAF8F5"/>
-            </g>
-        `
+        thumb: 'assets/configurador/terracota__monstera-600.webp'
     },
     ficus: {
         id: 'ficus',
         name: 'Ficus Lyrata',
+        shortName: 'Ficus',
         desc: 'Porte escultórico con hojas en forma de violín.',
-        svgPath: `
-            <g transform="translate(10, 0)">
-                <!-- Tronco leñoso -->
-                <path d="M 120 190 Q 120 120 120 40" stroke="#5C4535" stroke-width="7" fill="none" stroke-linecap="round"/>
-                <!-- Hoja 1 Superior -->
-                <path d="M 120 30 C 80 10 75 60 95 80 C 80 95 85 120 115 125 C 120 125 125 125 125 125 C 155 120 160 95 145 80 C 165 60 160 10 120 30 Z" fill="#4B6655"/>
-                <path d="M 120 35 L 120 120" stroke="#728F7D" stroke-width="2" fill="none"/>
-                <!-- Hoja 2 Media Izq -->
-                <path d="M 115 80 C 75 70 70 110 85 125 C 70 140 75 160 105 165 L 115 130 Z" fill="#3D5345"/>
-                <!-- Hoja 3 Media Der -->
-                <path d="M 125 80 C 165 70 170 110 155 125 C 170 140 165 160 135 165 L 125 130 Z" fill="#3D5345"/>
-            </g>
-        `
+        thumb: 'assets/configurador/terracota__ficus-600.webp'
     },
     haworthia: {
         id: 'haworthia',
         name: 'Haworthia Cebra',
+        shortName: 'Haworthia',
         desc: 'Suculenta compacta con estrías blancas de mínimo riego.',
-        svgPath: `
-            <g transform="translate(10, 40)">
-                <!-- Roseta de suculenta -->
-                <path d="M 120 140 L 120 30 L 110 140 Z" fill="#2E4034"/>
-                <path d="M 120 140 L 90 45 L 105 140 Z" fill="#384E3F"/>
-                <path d="M 120 140 L 150 45 L 135 140 Z" fill="#384E3F"/>
-                <path d="M 120 140 L 65 70 L 95 140 Z" fill="#45604E"/>
-                <path d="M 120 140 L 175 70 L 145 140 Z" fill="#45604E"/>
-                <path d="M 120 140 L 50 110 L 90 140 Z" fill="#526E5D"/>
-                <path d="M 120 140 L 190 110 L 150 140 Z" fill="#526E5D"/>
-                <!-- Rayas Cebra blancas -->
-                <path d="M 116 55 L 124 55 M 115 75 L 125 75 M 114 95 L 126 95" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
-                <path d="M 92 65 L 100 68 M 89 85 L 98 90 M 85 105 L 96 110" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
-                <path d="M 148 65 L 140 68 M 151 85 L 142 90 M 155 105 L 144 110" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
-            </g>
-        `
+        thumb: 'assets/configurador/terracota__haworthia-600.webp'
     }
 };
 
@@ -318,6 +321,9 @@ let configuratorState = {
     size: 'm',
     plant: 'monstera'
 };
+
+// Variable para controlar la capa activa del crossfade (0 = pot-img-a, 1 = pot-img-b)
+let activeCrossfadeLayer = 0;
 
 // Estado de Filtros del Catálogo
 let catalogFilter = {
@@ -350,6 +356,8 @@ function navigateTo(view, param) {
     initScrollReveal();
     if (view === 'home') {
         initHeroParallax();
+        initPotTilt();
+        preloadConfiguratorAssets();
     }
 }
 
@@ -894,66 +902,123 @@ function selectQuizAnswer(val) {
 }
 
 // =============================================================================
-// CONFIGURADOR 2D "ARMÁ TU MACETA" (ACABADO, TAMAÑO Y PLANTA)
+// CONFIGURADOR 2D FOTORREALISTA "ARMÁ TU MACETA" (WEBP, CROSSFADE & TILT)
 // =============================================================================
 
 function calculateConfigPrice() {
-    const finish = POT_FINISHES[configuratorState.finish];
-    const size = POT_SIZES[configuratorState.size];
+    const finish = POT_FINISHES[configuratorState.finish] || POT_FINISHES.terracota;
+    const size = POT_SIZES[configuratorState.size] || POT_SIZES.m;
     return finish.basePrice + size.priceDelta;
 }
 
+/**
+ * Realiza un crossfade suave (~450ms) entre dos capas <img> superpuestas
+ * evitando parpadeos de red y saltos de layout.
+ */
+function swapConfiguratorImage(configKey) {
+    const itemConfig = CONFIGURATOR_IMAGES[configKey];
+    if (!itemConfig) {
+        console.warn('⚠️ Combinación no encontrada en CONFIGURATOR_IMAGES:', configKey);
+        return;
+    }
+
+    const imgA = document.getElementById('pot-img-a');
+    const imgB = document.getElementById('pot-img-b');
+    const skeleton = document.getElementById('pot-skeleton-loader');
+    if (!imgA || !imgB) return;
+
+    // Determinar qué capa está visible y cuál recibirá la nueva imagen
+    const currentActive = activeCrossfadeLayer === 0 ? imgA : imgB;
+    const targetLayer = activeCrossfadeLayer === 0 ? imgB : imgA;
+
+    const src1000 = `${itemConfig.base}-1000.webp`;
+    const src600 = `${itemConfig.base}-600.webp`;
+    const srcset = `${src600} 600w, ${src1000} 1000w`;
+
+    // Preparar targetLayer con la nueva imagen y alt descriptivo
+    targetLayer.alt = itemConfig.alt;
+    targetLayer.srcset = srcset;
+    targetLayer.sizes = "(max-width: 768px) 600px, 1000px";
+
+    // Manejador de error elegante con fallback SVG
+    targetLayer.onerror = function() {
+        console.warn(`⚠️ Error al cargar imagen WebP: ${src1000}. Mostrando placeholder neutro.`);
+        targetLayer.src = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20400%20400%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23F4EFEA%22%2F%3E%3Cpath%20d%3D%22M200%20120%20c-40%200-70%2030-70%2070%200%2060%2070%20120%2070%20120%20s70-60%2070-120%20c0-40-30-70-70-70z%22%20fill%3D%22%23526E5D%22%20opacity%3D%220.4%22%2F%3E%3C%2Fsvg%3E";
+        if (skeleton) skeleton.style.opacity = '0';
+    };
+
+    const executeTransition = () => {
+        // Ejecutar crossfade
+        targetLayer.classList.remove('is-inactive');
+        targetLayer.classList.add('is-active');
+
+        currentActive.classList.remove('is-active');
+        currentActive.classList.add('is-inactive');
+
+        // Alternar el índice de capa activa
+        activeCrossfadeLayer = activeCrossfadeLayer === 0 ? 1 : 0;
+
+        // Ocultar skeleton loader
+        if (skeleton) {
+            skeleton.style.opacity = '0';
+        }
+    };
+
+    // Si ya está cargada en cache, transicionar al instante; si no, esperar al evento load
+    if (targetLayer.src.includes(src1000) && targetLayer.complete) {
+        executeTransition();
+    } else {
+        targetLayer.onload = () => {
+            executeTransition();
+            targetLayer.onload = null;
+        };
+        targetLayer.src = src1000;
+    }
+}
+
 function updateConfiguratorPreview() {
-    const finish = POT_FINISHES[configuratorState.finish];
-    const size = POT_SIZES[configuratorState.size];
-    const plant = POT_PLANTS[configuratorState.plant];
+    const finish = POT_FINISHES[configuratorState.finish] || POT_FINISHES.terracota;
+    const size = POT_SIZES[configuratorState.size] || POT_SIZES.m;
+    const plant = POT_PLANTS[configuratorState.plant] || POT_PLANTS.monstera;
     const total = calculateConfigPrice();
+    const configKey = `${configuratorState.finish}__${configuratorState.plant}`;
 
     // Actualizar elementos de texto
     const priceEl = document.getElementById('config-price');
     const nameEl = document.getElementById('config-name');
     const descEl = document.getElementById('config-desc');
     const sizeBadge = document.getElementById('config-size-badge');
+    const liveAnnouncer = document.getElementById('config-live-announcer');
 
     if (priceEl) priceEl.innerText = `$${total.toLocaleString()}`;
     if (nameEl) nameEl.innerText = `${finish.name} (${size.short})`;
     if (descEl) descEl.innerText = finish.textureText;
     if (sizeBadge) sizeBadge.innerText = `${size.label} • ${plant.name}`;
 
-    // Actualizar SVG de la Maceta
-    const potBody = document.getElementById('pot-svg-body');
-    const potRim = document.getElementById('pot-svg-rim');
-    const potInner = document.getElementById('pot-svg-inner');
-    const potHighlight = document.getElementById('pot-svg-highlight');
+    // Anuncio para lectores de pantalla
+    if (liveAnnouncer) {
+        liveAnnouncer.innerText = `Seleccionado: ${finish.name}, tamaño ${size.short}, ${plant.name}. Precio total: $${total.toLocaleString()}`;
+    }
+
+    // Actualizar escala visual en el envoltorio (S: 0.82, M: 1.0, L: 1.18)
     const potWrap = document.getElementById('pot-preview-wrap');
-    const plantLayer = document.getElementById('pot-plant-container');
-
-    if (potBody) potBody.setAttribute('fill', finish.bodyGradient);
-    if (potRim) potRim.setAttribute('fill', finish.rimColor);
-    if (potInner) potInner.setAttribute('fill', finish.innerColor);
-    if (potHighlight) potHighlight.setAttribute('opacity', finish.specularOpacity);
-
-    // Escalar según tamaño S / M / L
     if (potWrap) {
-        potWrap.className = `pot-preview-wrap ${size.scaleClass}`;
+        potWrap.className = `pot-preview-wrap pot-idle-float ${size.scaleClass}`;
     }
 
-    // Cambiar la planta interior
-    if (plantLayer) {
-        plantLayer.innerHTML = `
-            <svg viewBox="0 0 240 200" class="w-full h-full">
-                ${plant.svgPath}
-            </svg>
-        `;
-    }
+    // Intercambiar imagen con crossfade
+    swapConfiguratorImage(configKey);
 
-    // Actualizar botones de acabado
+    // Actualizar botones de acabado con miniaturas y accesibilidad
     Object.keys(POT_FINISHES).forEach(k => {
         const btn = document.getElementById(`finish-btn-${k}`);
         if (btn) {
-            btn.className = k === configuratorState.finish 
-                ? 'w-full flex items-center justify-between p-3.5 rounded-2xl border-2 border-botanika-600 bg-botanika-50 text-left transition'
-                : 'w-full flex items-center justify-between p-3.5 rounded-2xl border border-botanika-300 hover:border-botanika-600 bg-white text-left transition';
+            const isSelected = k === configuratorState.finish;
+            btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+            btn.setAttribute('tabindex', isSelected ? '0' : '-1');
+            btn.className = isSelected 
+                ? 'config-thumb-card is-selected w-full flex items-center justify-between p-3 rounded-2xl text-left transition'
+                : 'config-thumb-card w-full flex items-center justify-between p-3 rounded-2xl text-left transition';
         }
     });
 
@@ -961,7 +1026,10 @@ function updateConfiguratorPreview() {
     Object.keys(POT_SIZES).forEach(s => {
         const btn = document.getElementById(`size-btn-${s}`);
         if (btn) {
-            btn.className = s === configuratorState.size
+            const isSelected = s === configuratorState.size;
+            btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+            btn.setAttribute('tabindex', isSelected ? '0' : '-1');
+            btn.className = isSelected
                 ? 'py-2 px-3.5 rounded-xl border-2 border-botanika-600 bg-botanika-600 text-white font-semibold text-xs transition shadow-2xs'
                 : 'py-2 px-3.5 rounded-xl border border-botanika-300 hover:border-botanika-600 bg-white text-botanika-800 text-xs font-medium transition';
         }
@@ -971,9 +1039,12 @@ function updateConfiguratorPreview() {
     Object.keys(POT_PLANTS).forEach(p => {
         const btn = document.getElementById(`plant-btn-${p}`);
         if (btn) {
-            btn.className = p === configuratorState.plant
-                ? 'p-2.5 rounded-xl border-2 border-botanika-600 bg-botanika-50 text-xs font-semibold text-botanika-800 transition flex items-center space-x-2'
-                : 'p-2.5 rounded-xl border border-botanika-300 hover:border-botanika-600 bg-white text-xs font-medium text-botanika-700 transition flex items-center space-x-2';
+            const isSelected = p === configuratorState.plant;
+            btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+            btn.setAttribute('tabindex', isSelected ? '0' : '-1');
+            btn.className = isSelected
+                ? 'config-thumb-card is-selected p-2.5 rounded-xl text-xs font-semibold text-botanika-800 transition flex items-center space-x-2'
+                : 'config-thumb-card p-2.5 rounded-xl text-xs font-medium text-botanika-700 transition flex items-center space-x-2';
         }
     });
 }
@@ -999,18 +1070,144 @@ function selectPotPlant(plantKey) {
     showToast(`Planta elegida: ${POT_PLANTS[plantKey].name}`);
 }
 
-function addCustomPotToCart() {
+/**
+ * Tilt interactivo con el mouse (máximo 4 grados, acelerado por GPU).
+ * Se desactiva en pantallas táctiles y en prefers-reduced-motion.
+ */
+function initPotTilt() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !window.matchMedia('(pointer: fine)').matches) {
+        return;
+    }
+
+    const stage = document.getElementById('pot-stage-2d');
+    const wrap = document.getElementById('pot-preview-wrap');
+    if (!stage || !wrap) return;
+
+    let targetRotX = 0, targetRotY = 0;
+    let currentRotX = 0, currentRotY = 0;
+    let isTicking = false;
+
+    function renderTilt() {
+        currentRotX += (targetRotX - currentRotX) * 0.1;
+        currentRotY += (targetRotY - currentRotY) * 0.1;
+
+        wrap.style.transform = `perspective(1000px) rotateX(${currentRotX}deg) rotateY(${currentRotY}deg)`;
+
+        if (Math.abs(targetRotX - currentRotX) > 0.01 || Math.abs(targetRotY - currentRotY) > 0.01) {
+            requestAnimationFrame(renderTilt);
+        } else {
+            isTicking = false;
+        }
+    }
+
+    stage.addEventListener('mousemove', (e) => {
+        const rect = stage.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        targetRotX = -y * 8; // máx ±4°
+        targetRotY = x * 8;  // máx ±4°
+        if (!isTicking) {
+            isTicking = true;
+            requestAnimationFrame(renderTilt);
+        }
+    });
+
+    stage.addEventListener('mouseleave', () => {
+        targetRotX = 0;
+        targetRotY = 0;
+        if (!isTicking) {
+            isTicking = true;
+            requestAnimationFrame(renderTilt);
+        }
+    });
+}
+
+/**
+ * Modal Lightbox Accesible para Zoom en alta resolución (1000px).
+ */
+function openPotZoom() {
+    const configKey = `${configuratorState.finish}__${configuratorState.plant}`;
+    const itemConfig = CONFIGURATOR_IMAGES[configKey];
+    const modal = document.getElementById('pot-zoom-modal');
+    const modalImg = document.getElementById('pot-zoom-img');
+    const modalTitle = document.getElementById('pot-zoom-title');
+    const modalPrice = document.getElementById('pot-zoom-price');
+
+    if (!modal || !modalImg) return;
+
     const finish = POT_FINISHES[configuratorState.finish];
     const size = POT_SIZES[configuratorState.size];
     const plant = POT_PLANTS[configuratorState.plant];
+    const total = calculateConfigPrice();
+
+    modalImg.src = `${itemConfig.base}-1000.webp`;
+    modalImg.alt = itemConfig.alt;
+    if (modalTitle) modalTitle.innerText = `${finish.name} (${size.short}) con ${plant.name}`;
+    if (modalPrice) modalPrice.innerText = `$${total.toLocaleString()}`;
+
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('menu-open');
+
+    // Atrapar foco en el botón de cerrar
+    const closeBtn = document.getElementById('pot-zoom-close-btn');
+    if (closeBtn) closeBtn.focus();
+}
+
+function closePotZoom() {
+    const modal = document.getElementById('pot-zoom-modal');
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('menu-open');
+
+    const triggerBtn = document.getElementById('btn-pot-zoom');
+    if (triggerBtn) triggerBtn.focus();
+}
+
+// Cierre accesible con tecla Escape para el Lightbox
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('pot-zoom-modal');
+        if (modal && modal.classList.contains('is-open')) {
+            closePotZoom();
+        }
+    }
+});
+
+/**
+ * Precarga diferida de las 9 imágenes del configurador tras el inicio.
+ */
+function preloadConfiguratorAssets() {
+    const preload = () => {
+        Object.values(CONFIGURATOR_IMAGES).forEach(item => {
+            const img = new Image();
+            img.src = `${item.base}-600.webp`;
+            const imgHigh = new Image();
+            imgHigh.src = `${item.base}-1000.webp`;
+        });
+    };
+
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(preload);
+    } else {
+        setTimeout(preload, 1200);
+    }
+}
+
+function addCustomPotToCart() {
+    const finish = POT_FINISHES[configuratorState.finish] || POT_FINISHES.terracota;
+    const size = POT_SIZES[configuratorState.size] || POT_SIZES.m;
+    const plant = POT_PLANTS[configuratorState.plant] || POT_PLANTS.monstera;
     const totalPrice = calculateConfigPrice();
+    const configKey = `${configuratorState.finish}__${configuratorState.plant}`;
 
     const customItem = {
         id: 400 + (configuratorState.finish === 'terracota' ? 10 : configuratorState.finish === 'blanca' ? 20 : 30) + (configuratorState.size === 's' ? 1 : configuratorState.size === 'm' ? 2 : 3),
         name: `Maceta de Autor (${finish.name}) + ${plant.name}`,
         price: totalPrice,
         qty: 1,
-        image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=300",
+        image: `assets/configurador/${configKey}-600.webp`,
         pot: `${finish.name} (${size.short}) con ${plant.name}`
     };
 
@@ -1559,6 +1756,8 @@ function renderView() {
         case 'home':
             main.innerHTML = renderHome();
             initHeroParallax();
+            initPotTilt();
+            preloadConfiguratorAssets();
             break;
         case 'catalog':
             main.innerHTML = renderCatalog();
@@ -1582,6 +1781,8 @@ function renderView() {
         default:
             main.innerHTML = renderHome();
             initHeroParallax();
+            initPotTilt();
+            preloadConfiguratorAssets();
     }
 
     if (typeof lucide !== 'undefined') {
@@ -1595,10 +1796,13 @@ function renderView() {
 // =============================================================================
 
 function renderHome() {
-    const activeFinish = POT_FINISHES[configuratorState.finish];
-    const activePlant = POT_PLANTS[configuratorState.plant];
-    const activeSize = POT_SIZES[configuratorState.size];
+    const activeFinish = POT_FINISHES[configuratorState.finish] || POT_FINISHES.terracota;
+    const activePlant = POT_PLANTS[configuratorState.plant] || POT_PLANTS.monstera;
+    const activeSize = POT_SIZES[configuratorState.size] || POT_SIZES.m;
     const currentConfigPrice = calculateConfigPrice();
+    const configKey = `${configuratorState.finish}__${configuratorState.plant}`;
+    const activeImgConfig = CONFIGURATOR_IMAGES[configKey];
+    const activeImgAlt = activeImgConfig ? activeImgConfig.alt : 'Maceta de autor con planta configurada';
 
     return `
         <!-- =================================================================== -->
@@ -1836,64 +2040,66 @@ function renderHome() {
         </section>
 
         <!-- =================================================================== -->
-        <!-- SECCIÓN: CONFIGURADOR 2D "ARMÁ TU MACETA" (INTERACTIVO & VECTORIAL) -->
+        <!-- SECCIÓN: CONFIGURADOR 2D FOTORREALISTA "ARMÁ TU MACETA"             -->
         <!-- =================================================================== -->
         <section id="landing-configurador" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
             <div class="text-center max-w-2xl mx-auto mb-16 space-y-3 reveal-on-scroll">
                 <span class="text-botanika-terracota font-semibold text-xs tracking-widest uppercase">Estudio de Personalización</span>
                 <h2 class="font-serif text-3xl sm:text-4xl font-medium text-botanika-800">Armá tu Maceta de Autor</h2>
                 <p class="text-botanika-700 text-sm sm:text-base leading-relaxed">
-                    Elegí el acabado artesanal, la escala ideal para tu rincón y la planta que le dará vida. Previsualizá el resultado al instante.
+                    Elegí el acabado artesanal, la escala ideal para tu rincón y la planta que le dará vida. Previsualizá el resultado fotorrealista al instante.
                 </p>
+            </div>
+
+            <!-- Anunciador accesible para lectores de pantalla -->
+            <div id="config-live-announcer" class="sr-only" aria-live="polite">
+                Seleccionado: ${activeFinish.name}, tamaño ${activeSize.short}, ${activePlant.name}. Precio total: $${currentConfigPrice.toLocaleString()}
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                 
-                <!-- Escenario de previsualización 2D (Sin negro, sin ejes, con sombra suave) -->
-                <div class="lg:col-span-7 pot-stage-2d reveal-on-scroll">
+                <!-- Escenario de previsualización 2D Fotorrealista (WebP con Crossfade y Tilt) -->
+                <div class="lg:col-span-7 pot-stage-2d reveal-on-scroll" id="pot-stage-2d">
+                    
+                    <!-- Badge con selección activa -->
                     <div class="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-botanika-800 border border-botanika-200 shadow-sm flex items-center space-x-1.5 z-10">
                         <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-botanika-600"></i>
                         <span id="config-size-badge">${activeSize.label} • ${activePlant.name}</span>
                     </div>
 
-                    <!-- Contenedor animado de maceta + planta -->
-                    <div class="pot-preview-wrap ${activeSize.scaleClass}" id="pot-preview-wrap">
+                    <!-- Botón de Zoom / Lightbox -->
+                    <button id="btn-pot-zoom" onclick="openPotZoom()" class="btn-pot-zoom" title="Ampliar en alta resolución" aria-label="Ver imagen ampliada de la maceta">
+                        <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+                        <span>Ver detalle</span>
+                    </button>
+
+                    <!-- Contenedor animado con escala S/M/L y flotación idle -->
+                    <div class="pot-preview-wrap pot-idle-float ${activeSize.scaleClass}" id="pot-preview-wrap">
                         
-                        <!-- Capa Ilustración de Planta -->
-                        <div class="pot-plant-layer" id="pot-plant-container">
-                            <svg viewBox="0 0 240 200" class="w-full h-full">
-                                ${activePlant.svgPath}
-                            </svg>
+                        <!-- Skeleton Loader Shimmer -->
+                        <div id="pot-skeleton-loader" class="pot-skeleton" style="opacity: 0;"></div>
+
+                        <!-- Capas de imagen para Crossfade suave -->
+                        <div class="pot-crossfade-stage">
+                            <img id="pot-img-a"
+                                 class="pot-img-layer is-active"
+                                 src="assets/configurador/${configKey}-1000.webp"
+                                 srcset="assets/configurador/${configKey}-600.webp 600w, assets/configurador/${configKey}-1000.webp 1000w"
+                                 sizes="(max-width: 768px) 600px, 1000px"
+                                 alt="${activeImgAlt}"
+                                 width="1000"
+                                 height="1000"
+                                 decoding="async">
+                            <img id="pot-img-b"
+                                 class="pot-img-layer is-inactive"
+                                 src=""
+                                 alt=""
+                                 width="1000"
+                                 height="1000"
+                                 decoding="async">
                         </div>
 
-                        <!-- Maceta Vectorial SVG Dinámica -->
-                        <div class="pot-vessel-layer">
-                            <svg viewBox="0 0 200 150" class="w-full h-full">
-                                <defs>
-                                    <linearGradient id="pot-grad-terracota" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#E48B69"/>
-                                        <stop offset="45%" stop-color="#D07A58"/>
-                                        <stop offset="100%" stop-color="#9C4C2E"/>
-                                    </linearGradient>
-                                    <linearGradient id="pot-grad-blanca" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#FFFFFF"/>
-                                        <stop offset="50%" stop-color="#F2EFE9"/>
-                                        <stop offset="100%" stop-color="#DCD6C9"/>
-                                    </linearGradient>
-                                    <linearGradient id="pot-grad-gris" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#9BA39C"/>
-                                        <stop offset="50%" stop-color="#7A827B"/>
-                                        <stop offset="100%" stop-color="#555C56"/>
-                                    </linearGradient>
-                                </defs>
-                                <path id="pot-svg-body" d="M 25 15 L 45 135 C 47 142 55 146 65 146 L 135 146 C 145 146 153 142 155 135 L 175 15 Z" fill="${activeFinish.bodyGradient}" />
-                                <ellipse id="pot-svg-rim" cx="100" cy="15" rx="76" ry="12" fill="${activeFinish.rimColor}" />
-                                <ellipse id="pot-svg-inner" cx="100" cy="15" rx="68" ry="9" fill="${activeFinish.innerColor}" />
-                                <path id="pot-svg-highlight" d="M 40 25 L 55 130 C 56 132 58 134 60 134 L 75 134 L 60 25 Z" fill="white" opacity="${activeFinish.specularOpacity}" />
-                            </svg>
-                        </div>
-
-                        <!-- Sombra de contacto suave -->
+                        <!-- Sombra de contacto elíptica -->
                         <div class="pot-contact-shadow"></div>
                     </div>
                 </div>
@@ -1901,23 +2107,31 @@ function renderHome() {
                 <!-- Panel de Configuración & Acciones -->
                 <div class="lg:col-span-5 bg-white p-7 sm:p-8 rounded-3xl border border-botanika-200 shadow-card space-y-6 reveal-on-scroll stagger-2">
                     
-                    <!-- 1. Acabado -->
+                    <!-- 1. Acabado (Radio Group con Miniaturas) -->
                     <div>
-                        <div class="flex justify-between items-baseline mb-2">
+                        <div class="flex justify-between items-baseline mb-2.5">
                             <span class="text-xs font-semibold text-botanika-600 uppercase tracking-widest">1. Material & Acabado</span>
                             <span id="config-name" class="font-serif font-semibold text-sm text-botanika-800">${activeFinish.name}</span>
                         </div>
-                        <div class="space-y-2">
+                        <div class="space-y-2.5" role="radiogroup" aria-label="Seleccionar acabado de maceta">
                             ${Object.keys(POT_FINISHES).map(k => {
                                 const f = POT_FINISHES[k];
                                 const isSelected = k === configuratorState.finish;
                                 return `
-                                    <button id="finish-btn-${k}" onclick="selectPotFinish('${k}')" class="w-full flex items-center justify-between p-3 rounded-2xl ${isSelected ? 'border-2 border-botanika-600 bg-botanika-50' : 'border border-botanika-300 hover:border-botanika-600 bg-white'} text-left transition">
+                                    <button id="finish-btn-${k}"
+                                            role="radio"
+                                            aria-checked="${isSelected ? 'true' : 'false'}"
+                                            tabindex="${isSelected ? '0' : '-1'}"
+                                            onclick="selectPotFinish('${k}')"
+                                            class="config-thumb-card ${isSelected ? 'is-selected' : ''} w-full flex items-center justify-between p-3 rounded-2xl text-left transition">
                                         <div class="flex items-center space-x-3">
-                                            <span class="w-6 h-6 rounded-full border border-black/10 flex-shrink-0" style="background-color: ${f.hex};"></span>
+                                            <img src="assets/configurador/${k}__monstera-600.webp" 
+                                                 alt="${f.name}" 
+                                                 class="w-11 h-11 rounded-xl object-contain bg-botanika-50 border border-botanika-200 flex-shrink-0"
+                                                 loading="lazy">
                                             <div>
                                                 <p class="font-medium text-xs text-botanika-800">${f.name}</p>
-                                                <p class="text-[10px] text-botanika-700">${k === 'terracota' ? 'Porosa natural' : k === 'blanca' ? 'Esmalte satinado' : 'Tacto mineral mate'}</p>
+                                                <p class="text-[10px] text-botanika-700">${k === 'terracota' ? 'Porosa natural al sol' : k === 'blanca' ? 'Esmalte satinado suave' : 'Compuesto mineral mate'}</p>
                                             </div>
                                         </div>
                                         <span class="font-serif font-bold text-xs text-botanika-800">$${f.basePrice.toLocaleString()}</span>
@@ -1927,19 +2141,24 @@ function renderHome() {
                         </div>
                     </div>
 
-                    <!-- 2. Tamaño -->
+                    <!-- 2. Tamaño (Radio Group S / M / L) -->
                     <div>
                         <div class="flex justify-between items-baseline mb-2">
                             <span class="text-xs font-semibold text-botanika-600 uppercase tracking-widest">2. Tamaño de Maceta</span>
                             <span class="text-[11px] text-botanika-700">Ajuste de precio incluido</span>
                         </div>
-                        <div class="grid grid-cols-3 gap-2">
+                        <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Seleccionar tamaño de maceta">
                             ${Object.keys(POT_SIZES).map(s => {
                                 const sz = POT_SIZES[s];
                                 const isSelected = s === configuratorState.size;
                                 const deltaLabel = sz.priceDelta === 0 ? 'Estándar' : sz.priceDelta > 0 ? `+$${sz.priceDelta.toLocaleString()}` : `-$${Math.abs(sz.priceDelta).toLocaleString()}`;
                                 return `
-                                    <button id="size-btn-${s}" onclick="selectPotSize('${s}')" class="py-2.5 px-3 rounded-xl ${isSelected ? 'border-2 border-botanika-600 bg-botanika-600 text-white font-semibold' : 'border border-botanika-300 hover:border-botanika-600 bg-white text-botanika-800'} text-xs text-center transition">
+                                    <button id="size-btn-${s}"
+                                            role="radio"
+                                            aria-checked="${isSelected ? 'true' : 'false'}"
+                                            tabindex="${isSelected ? '0' : '-1'}"
+                                            onclick="selectPotSize('${s}')"
+                                            class="py-2.5 px-3 rounded-xl ${isSelected ? 'border-2 border-botanika-600 bg-botanika-600 text-white font-semibold' : 'border border-botanika-300 hover:border-botanika-600 bg-white text-botanika-800'} text-xs text-center transition">
                                         <div class="font-bold">${sz.short}</div>
                                         <div class="text-[10px] opacity-80">${deltaLabel}</div>
                                     </button>
@@ -1948,17 +2167,26 @@ function renderHome() {
                         </div>
                     </div>
 
-                    <!-- 3. Planta Interior Acompañante -->
+                    <!-- 3. Planta Interior Acompañante (Radio Group con Miniaturas) -->
                     <div>
                         <span class="text-xs font-semibold text-botanika-600 uppercase tracking-widest block mb-2">3. Planta Incluida</span>
-                        <div class="grid grid-cols-3 gap-2">
+                        <div class="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Seleccionar planta viva incluida">
                             ${Object.keys(POT_PLANTS).map(p => {
                                 const pl = POT_PLANTS[p];
                                 const isSelected = p === configuratorState.plant;
                                 return `
-                                    <button id="plant-btn-${p}" onclick="selectPotPlant('${p}')" class="p-2.5 rounded-xl ${isSelected ? 'border-2 border-botanika-600 bg-botanika-50 font-semibold text-botanika-800' : 'border border-botanika-300 hover:border-botanika-600 bg-white text-botanika-700'} text-xs text-left transition flex flex-col justify-between">
-                                        <span class="truncate">${pl.name.split(' ')[0]}</span>
-                                        <span class="text-[10px] text-botanika-600 mt-1">✓ Incluida</span>
+                                    <button id="plant-btn-${p}"
+                                            role="radio"
+                                            aria-checked="${isSelected ? 'true' : 'false'}"
+                                            tabindex="${isSelected ? '0' : '-1'}"
+                                            onclick="selectPotPlant('${p}')"
+                                            class="config-thumb-card ${isSelected ? 'is-selected' : ''} p-2.5 rounded-xl text-xs text-left transition flex flex-col items-center text-center">
+                                        <img src="assets/configurador/terracota__${p}-600.webp" 
+                                             alt="${pl.name}" 
+                                             class="w-12 h-12 object-contain mb-1" 
+                                             loading="lazy">
+                                        <span class="font-medium text-[11px] text-botanika-800 leading-tight">${pl.shortName}</span>
+                                        <span class="text-[10px] text-botanika-600 font-semibold mt-0.5">✓ Incluida</span>
                                     </button>
                                 `;
                             }).join('')}
@@ -1982,6 +2210,26 @@ function renderHome() {
 
                 </div>
 
+            </div>
+
+            <!-- Lightbox Modal de Zoom Accesible -->
+            <div id="pot-zoom-modal" class="pot-zoom-modal" role="dialog" aria-modal="true" aria-label="Detalle ampliado de la maceta" aria-hidden="true">
+                <div class="pot-zoom-backdrop" onclick="closePotZoom()"></div>
+                <div class="pot-zoom-content">
+                    <div class="w-full flex items-center justify-between pb-3 border-b border-botanika-200">
+                        <div>
+                            <h3 id="pot-zoom-title" class="font-serif text-lg font-medium text-botanika-800">${activeFinish.name} (${activeSize.short}) con ${activePlant.name}</h3>
+                            <span id="pot-zoom-price" class="text-xs font-bold text-botanika-terracota">$${currentConfigPrice.toLocaleString()}</span>
+                        </div>
+                        <button id="pot-zoom-close-btn" onclick="closePotZoom()" class="p-2 rounded-full hover:bg-botanika-100 text-botanika-800 transition" aria-label="Cerrar vista ampliada">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="relative w-full max-w-[500px] aspect-square flex items-center justify-center p-4">
+                        <img id="pot-zoom-img" src="assets/configurador/${configKey}-1000.webp" alt="${activeImgAlt}" class="w-full h-full object-contain filter drop-shadow-2xl">
+                    </div>
+                    <p class="text-xs text-botanika-700 text-center">Presioná Esc o hacé clic afuera para cerrar.</p>
+                </div>
             </div>
         </section>
 

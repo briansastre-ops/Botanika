@@ -428,82 +428,234 @@ body.menu-open {
 }
 
 /* -----------------------------------------------------------------------------
-   CONFIGURADOR 2D "ARMÁ TU MACETA"
+   CONFIGURADOR 2D FOTORREALISTA "ARMÁ TU MACETA"
    ----------------------------------------------------------------------------- */
 .pot-stage-2d {
     position: relative;
     width: 100%;
-    height: 480px;
-    background: radial-gradient(circle at 50% 45%, #FFFFFF 0%, #F5F1E8 65%, #EDE6DA 100%);
+    min-height: 520px;
+    background: radial-gradient(ellipse at 50% 40%, #FAF8F5 0%, #F4F1EA 55%, #E5ECE7 100%);
     border-radius: var(--radius-xl);
     border: 1px solid var(--surface-border);
-    box-shadow: var(--shadow-card);
+    box-shadow: var(--shadow-card), inset 0 0 70px rgba(255, 255, 255, 0.7);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    padding: 1.5rem;
+    padding: 2rem 1.5rem;
+    transition: box-shadow var(--duration-normal) ease;
+}
+
+@media (max-width: 768px) {
+    .pot-stage-2d {
+        min-height: 380px;
+        aspect-ratio: 1 / 1;
+        padding: 1rem;
+    }
 }
 
 .pot-preview-wrap {
     position: relative;
     width: 100%;
-    max-width: 320px;
-    height: 340px;
+    max-width: 420px;
+    aspect-ratio: 1 / 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-end;
-    transition: transform 400ms var(--ease-out-expo);
+    justify-content: center;
+    transform-origin: bottom center;
+    transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
 }
 
-/* Escalas por tamaño */
-.pot-scale-s { transform: scale(0.84); }
-.pot-scale-m { transform: scale(1.0); }
-.pot-scale-l { transform: scale(1.16); }
+/* Escalas por tamaño (S / M / L) */
+.pot-preview-wrap.pot-scale-s { transform: scale(0.82); }
+.pot-preview-wrap.pot-scale-m { transform: scale(1.0); }
+.pot-preview-wrap.pot-scale-l { transform: scale(1.18); }
 
-/* Capa de planta dentro de la maceta */
-.pot-plant-layer {
-    position: absolute;
-    bottom: 120px;
-    width: 250px;
-    height: 230px;
-    z-index: 2;
-    transition: opacity 350ms ease, transform 350ms var(--ease-out-expo);
+/* Flotación Idle Sutil (~2px, 6s) */
+.pot-idle-float {
+    animation: potIdleFloat 6s ease-in-out infinite;
+}
+
+@keyframes potIdleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* Contenedor de capas de imágenes para Crossfade */
+.pot-crossfade-stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
 }
 
-.pot-plant-layer img, .pot-plant-layer svg {
-    max-width: 100%;
-    max-height: 100%;
+.pot-img-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 10px 14px rgba(31, 42, 35, 0.16));
+    filter: drop-shadow(0 16px 22px rgba(28, 40, 32, 0.16));
+    transition: opacity 450ms cubic-bezier(0.16, 1, 0.3, 1),
+                transform 450ms cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    will-change: opacity, transform;
 }
 
-/* Capa de la maceta vectorial SVG */
-.pot-vessel-layer {
-    position: relative;
-    z-index: 3;
-    width: 200px;
-    height: 150px;
-    transition: filter 400ms ease;
-    filter: drop-shadow(0 14px 20px rgba(31, 42, 35, 0.18));
+.pot-img-layer.is-active {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    z-index: 2;
 }
 
-/* Sombra de contacto realista */
+.pot-img-layer.is-inactive {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+    z-index: 1;
+}
+
+/* Sombra de contacto elíptica realista */
 .pot-contact-shadow {
     position: absolute;
-    bottom: 24px;
-    width: 210px;
-    height: 24px;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    height: 28px;
     border-radius: var(--radius-full);
-    background: radial-gradient(ellipse at center, rgba(31, 42, 35, 0.35) 0%, rgba(31, 42, 35, 0.08) 60%, transparent 80%);
-    filter: blur(6px);
-    z-index: 1;
-    transition: width 400ms ease, opacity 400ms ease;
+    background: radial-gradient(ellipse at center, rgba(28, 40, 32, 0.38) 0%, rgba(28, 40, 32, 0.12) 50%, transparent 75%);
+    filter: blur(8px);
+    z-index: 0;
+    pointer-events: none;
+    transition: width 450ms cubic-bezier(0.16, 1, 0.3, 1), opacity 450ms ease;
+}
+
+.pot-preview-wrap.pot-scale-s .pot-contact-shadow { width: 210px; opacity: 0.75; }
+.pot-preview-wrap.pot-scale-m .pot-contact-shadow { width: 260px; opacity: 0.9; }
+.pot-preview-wrap.pot-scale-l .pot-contact-shadow { width: 310px; opacity: 1; }
+
+/* Skeleton Loader Shimmer */
+.pot-skeleton {
+    position: absolute;
+    inset: 10%;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(90deg, rgba(230, 236, 232, 0.4) 0%, rgba(255, 255, 255, 0.8) 50%, rgba(230, 236, 232, 0.4) 100%);
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.8s infinite;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+}
+
+@keyframes skeletonShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Botón de Zoom / Ampliar detalle */
+.btn-pot-zoom {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--surface-border);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-botanika-800);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    box-shadow: var(--shadow-subtle);
+    transition: all var(--duration-fast) ease;
+    cursor: pointer;
+}
+
+.btn-pot-zoom:hover {
+    background: #FFFFFF;
+    color: var(--color-terracota);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card);
+}
+
+/* Lightbox Modal de Zoom */
+.pot-zoom-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+}
+
+.pot-zoom-modal.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.pot-zoom-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(26, 38, 30, 0.8);
+    backdrop-filter: blur(12px);
+}
+
+.pot-zoom-content {
+    position: relative;
+    z-index: 2;
+    background: radial-gradient(ellipse at center, #FAF8F5 0%, #E8EEEA 100%);
+    border-radius: var(--radius-2xl);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    padding: 2rem;
+    max-width: 680px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: scale(0.95);
+    transition: transform 300ms var(--ease-out-expo);
+}
+
+.pot-zoom-modal.is-open .pot-zoom-content {
+    transform: scale(1);
+}
+
+/* Tarjetas de Selección con Miniatura */
+.config-thumb-card {
+    cursor: pointer;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--surface-border);
+    background: var(--surface-card);
+    transition: all var(--duration-fast) ease;
+}
+
+.config-thumb-card:hover {
+    border-color: var(--color-botanika-600);
+    transform: translateY(-1px);
+}
+
+.config-thumb-card.is-selected {
+    border: 2px solid var(--color-botanika-600);
+    background: var(--surface-tint);
+    box-shadow: var(--shadow-subtle);
+}
+
+.config-thumb-card:focus-visible {
+    outline: 2px solid var(--color-botanika-600);
+    outline-offset: 2px;
 }
 
 /* -----------------------------------------------------------------------------
