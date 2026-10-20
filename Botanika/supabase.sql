@@ -152,4 +152,35 @@ CREATE POLICY "Los usuarios pueden actualizar su propia orden"
     ON public.orders FOR UPDATE
     USING (auth.uid() = user_id);
 
+-- =============================================================================
+-- 5. TABLA OPCIONAL: wishlist (Favoritos del usuario sincronizados en la nube)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.wishlist (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    product_id BIGINT REFERENCES public.products(id) ON DELETE CASCADE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE(user_id, product_id)
+);
+
+-- Habilitar RLS en wishlist
+ALTER TABLE public.wishlist ENABLE ROW LEVEL SECURITY;
+
+-- Políticas RLS para wishlist
+DROP POLICY IF EXISTS "Los usuarios pueden consultar su propia wishlist" ON public.wishlist;
+CREATE POLICY "Los usuarios pueden consultar su propia wishlist"
+    ON public.wishlist FOR SELECT
+    USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Los usuarios pueden agregar favoritos a su wishlist" ON public.wishlist;
+CREATE POLICY "Los usuarios pueden agregar favoritos a su wishlist"
+    ON public.wishlist FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Los usuarios pueden eliminar favoritos de su wishlist" ON public.wishlist;
+CREATE POLICY "Los usuarios pueden eliminar favoritos de su wishlist"
+    ON public.wishlist FOR DELETE
+    USING (auth.uid() = user_id);
+
 -- Fin del script SQL
+

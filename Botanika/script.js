@@ -1,9 +1,9 @@
 /**
  * =============================================================================
- * BOTANIKA & CO. — E-COMMERCE SINGLE PAGE APPLICATION (SPA) FULL STACK
+ * BOTANIKA STUDIO & PLANTAS — E-COMMERCE SPA FULL STACK & SISTEMA 3D SPLINE
  * =============================================================================
- * Arquitectura: Frontend reactivo en Vanilla JS (ES6+) con Supabase Auth/DB
- * y pasarela de pago Checkout Pro de Mercado Pago.
+ * Arquitectura: Single Page Application (Vanilla ES6+)
+ * Integraciones: Supabase Auth/DB (RLS), Mercado Pago Checkout Pro, Spline 3D Viewer
  * =============================================================================
  */
 
@@ -28,6 +28,22 @@
     }
 })();
 
+// =============================================================================
+// CONSTANTES CONFIGURABLES DE SPLINE (3D INTERACTIVO)
+// =============================================================================
+/**
+ * URL de la escena Spline 3D para el Hero de la tienda.
+ * Reemplazá este placeholder con la URL publicada de tu escena de Spline:
+ * Ejemplo: https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode
+ */
+const SPLINE_HERO_URL = 'https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode';
+
+/**
+ * URL de la escena Spline 3D para el Configurador "Armá tu maceta".
+ * Reemplazá este placeholder con la URL de tu escena publicada:
+ */
+const SPLINE_CONFIGURATOR_URL = 'https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode';
+
 /**
  * @typedef {Object} Product
  * @property {number} id - Identificador único del producto.
@@ -38,12 +54,16 @@
  * @property {string} light - Requerimiento de luz solar ('Indirecta' | 'Mucha luz' | 'Poca luz' | 'N/A').
  * @property {string} size - Tamaño físico o volumen ('Pequeña' | 'Mediana' | 'Grande' | '20cm' | '5L').
  * @property {string} pot - Estilo o tipo de maceta/empaque.
- * @property {string} badge - Etiqueta promocional ('Más Vendido' | 'Nuevo' | 'Esencial' | 'Kit' | '').
+ * @property {string} badge - Etiqueta promocional ('Más Vendido' | 'Nuevo' | 'Esencial' | 'Kit' | 'Artesanal' | '').
+ * @property {number} rating - Calificación media (1.0 - 5.0).
+ * @property {number} reviewsCount - Cantidad de valoraciones de clientes.
+ * @property {boolean} petFriendly - Apta para mascotas o no.
+ * @property {string} difficulty - Nivel de cuidado requerido ('Fácil' | 'Media' | 'Avanzada' | 'N/A').
  * @property {string} description - Resumen botánico.
  */
 
 /**
- * Catálogo base de productos disponibles en la tienda.
+ * Catálogo base de productos disponibles en la tienda Botanika.
  * @type {Product[]}
  */
 const products = [
@@ -57,7 +77,11 @@ const products = [
         size: "Mediana", 
         pot: "Terracota", 
         badge: "Más Vendido",
-        description: "La reina del diseño interior. Hojas perforadas imponentes que llenan cualquier rincón de frescura y vitalidad."
+        rating: 4.9,
+        reviewsCount: 48,
+        difficulty: "Fácil",
+        petFriendly: false,
+        description: "La reina del diseño interior. Hojas perforadas imponentes que llenan cualquier rincón de frescura y vitalidad natural."
     },
     { 
         id: 2, 
@@ -69,7 +93,11 @@ const products = [
         size: "Grande", 
         pot: "Cerámica Beige", 
         badge: "Nuevo",
-        description: "Porte escultórico con hojas en forma de violín. Ideal para livings y espacios con excelente luz natural."
+        rating: 4.8,
+        reviewsCount: 32,
+        difficulty: "Media",
+        petFriendly: false,
+        description: "Porte escultórico con hojas en forma de violín. Ideal para livings y espacios con excelente luz natural tamizada."
     },
     { 
         id: 3, 
@@ -80,8 +108,12 @@ const products = [
         light: "N/A", 
         size: "20cm", 
         pot: "Terracota", 
-        badge: "",
-        description: "Barro cocido artesanal de alta porosidad que garantiza óptima aireación y salud radicular."
+        badge: "Artesanal",
+        rating: 5.0,
+        reviewsCount: 56,
+        difficulty: "N/A",
+        petFriendly: true,
+        description: "Barro cocido artesanal de alta porosidad torneado a mano. Garantiza óptima aireación y salud radicular."
     },
     { 
         id: 4, 
@@ -93,7 +125,11 @@ const products = [
         size: "5L", 
         pot: "Bolsa Eco", 
         badge: "Esencial",
-        description: "Mezcla aireada con corteza de pino seleccionada, perlita, fibra de coco y humus de lombriz."
+        rating: 4.9,
+        reviewsCount: 29,
+        difficulty: "N/A",
+        petFriendly: true,
+        description: "Mezcla aireada con corteza de pino seleccionada, perlita, fibra de coco y humus de lombriz certificado."
     },
     { 
         id: 5, 
@@ -105,7 +141,11 @@ const products = [
         size: "Mediana", 
         pot: "Cerámica Blanca", 
         badge: "Kit",
-        description: "La combinación perfecta e indestructible para iniciarte. Tolera baja luz y requiere riego cada 15 días."
+        rating: 5.0,
+        reviewsCount: 84,
+        difficulty: "Fácil",
+        petFriendly: false,
+        description: "La combinación perfecta e indestructible para iniciarte. Tolera baja luz, purifica el aire y requiere riego cada 15 días."
     },
     { 
         id: 6, 
@@ -117,7 +157,11 @@ const products = [
         size: "Pequeña", 
         pot: "Cerámica Gris", 
         badge: "Nuevo",
-        description: "La planta del dinero china. Hojas circulares perfectas, fácil de propagar y de rápido crecimiento."
+        rating: 4.7,
+        reviewsCount: 23,
+        difficulty: "Fácil",
+        petFriendly: true,
+        description: "La planta del dinero china. Hojas circulares perfectas, 100% pet-friendly, fácil de propagar y de rápido crecimiento."
     }
 ];
 
@@ -128,6 +172,18 @@ let cart = [
     { id: 1, name: "Monstera Deliciosa", price: 34000, qty: 1, image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&q=80&w=200", pot: "Terracota Artesanal" },
     { id: 3, name: "Maceta Minimal Terracota 20cm", price: 12500, qty: 1, image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=200", pot: "Estándar" }
 ];
+
+/**
+ * Lista de Deseos / Favoritos almacenada en localStorage
+ * @type {number[]} IDs de productos favoritos
+ */
+let wishlist = [];
+try {
+    const savedWish = localStorage.getItem('botanika_wishlist');
+    wishlist = savedWish ? JSON.parse(savedWish) : [1, 5];
+} catch (e) {
+    wishlist = [1, 5];
+}
 
 /** @type {'home'|'catalog'|'product'|'cart'|'checkout'|'profile'|'success'} Vista activa en la SPA */
 let currentView = 'home';
@@ -159,11 +215,53 @@ let pendingAction = null;
 /** @type {'login'|'register'} Modalidad actual del modal de Auth */
 let authModalMode = 'login';
 
-/** @type {number|null} Índice de la FAQ abierta actualmente */
+/** @type {number|null} Índice de la pregunta frecuente abierta en el acordeón */
 let openFaqIndex = 0;
 
+// Estado del Configurador 3D "Armá tu maceta"
+let selectedConfigFinish = 'terracota';
+const POT_FINISHES = {
+    terracota: {
+        name: 'Terracota Artesanal',
+        hex: '#D07A58',
+        price: 12500,
+        texture: 'Barro cocido poroso con micro-textura mate tradicional.',
+        image: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=600'
+    },
+    blanca: {
+        name: 'Cerámica Blanca Esmaltada',
+        hex: '#F7F6F2',
+        price: 14900,
+        texture: 'Esmalte cerámico horneado a alta temperatura con acabado satinado.',
+        image: 'https://images.unsplash.com/photo-1509423350716-97f9360b4e09?auto=format&fit=crop&q=80&w=600'
+    },
+    gris: {
+        name: 'Gris Cálido Mineral',
+        hex: '#7A827B',
+        price: 15200,
+        texture: 'Compuesto mineral contemporáneo de tacto sedoso y peso equilibrado.',
+        image: 'https://images.unsplash.com/photo-1637967888100-d83beabf90a1?auto=format&fit=crop&q=80&w=600'
+    }
+};
+
+// Estado de Filtros del Catálogo
+let catalogFilter = {
+    search: '',
+    category: 'Todas',
+    light: 'Todas',
+    maxPrice: 60000,
+    sortBy: 'default'
+};
+
+// Estado del Quiz Botánico
+let quizState = {
+    step: 0,
+    answers: {},
+    recommendedProduct: null
+};
+
 // =============================================================================
-// NAVEGACIÓN Y ENRUTADOR SPA
+// ENRUTAMIENTO SPA & NAVEGACIÓN
 // =============================================================================
 
 /**
@@ -177,6 +275,7 @@ function navigateTo(view, param) {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+    initScrollReveal();
 }
 
 /**
@@ -193,7 +292,7 @@ function goToLandingSection(sectionId) {
         if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-    }, 60);
+    }, 80);
 }
 
 /**
@@ -205,26 +304,52 @@ function toggleMobileMenu() {
 }
 
 /**
- * Muestra notificación flotante (Toast).
+ * Muestra notificación flotante (Toast) con iconografía accesible.
  */
-function showToast(msg) {
+function showToast(msg, type = 'success') {
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toast-message');
+    const toastIcon = document.getElementById('toast-icon');
     if (!toast || !toastMsg) return;
+
     toastMsg.innerText = msg;
+    if (toastIcon) {
+        if (type === 'error') {
+            toastIcon.className = 'w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center flex-shrink-0';
+            toastIcon.innerHTML = `<i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>`;
+        } else if (type === 'info') {
+            toastIcon.className = 'w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0';
+            toastIcon.innerHTML = `<i data-lucide="info" class="w-3.5 h-3.5"></i>`;
+        } else {
+            toastIcon.className = 'w-6 h-6 rounded-full bg-botanika-600 text-white flex items-center justify-center flex-shrink-0';
+            toastIcon.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i>`;
+        }
+    }
+
     toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
     setTimeout(() => {
         toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
     }, 3200);
 }
 
+// =============================================================================
+// CARRITO DE COMPRAS & MINI-CARRITO DRAWER
+// =============================================================================
+
 /**
- * Actualiza el contador numérico del carrito en el header.
+ * Actualiza el contador numérico del carrito en el header y en el drawer.
  */
 function updateCartBadge() {
     const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
     const badge = document.getElementById('cart-badge');
     if (badge) badge.innerText = totalItems;
+
+    const drawerCount = document.getElementById('cart-drawer-count');
+    if (drawerCount) drawerCount.innerText = totalItems;
+
+    updateCartDrawer();
 }
 
 /**
@@ -248,6 +373,562 @@ function addToCart(id) {
     }
     updateCartBadge();
     showToast(`"${product.name}" agregado al carrito`);
+    openCartDrawer();
+}
+
+/**
+ * Abre el Drawer lateral del Mini-Carrito.
+ */
+function openCartDrawer() {
+    const drawer = document.getElementById('cart-drawer');
+    const backdrop = document.getElementById('cart-drawer-backdrop');
+    if (drawer && backdrop) {
+        drawer.classList.add('active');
+        backdrop.classList.add('active');
+    }
+    updateCartDrawer();
+}
+
+/**
+ * Cierra el Drawer lateral del Mini-Carrito.
+ */
+function closeCartDrawer() {
+    const drawer = document.getElementById('cart-drawer');
+    const backdrop = document.getElementById('cart-drawer-backdrop');
+    if (drawer && backdrop) {
+        drawer.classList.remove('active');
+        backdrop.classList.remove('active');
+    }
+}
+
+/**
+ * Sincroniza y renderiza los ítems en el Mini-Carrito Drawer.
+ */
+function updateCartDrawer() {
+    const container = document.getElementById('cart-drawer-items');
+    const subtotalEl = document.getElementById('cart-drawer-subtotal');
+    const freeShippingBar = document.getElementById('free-shipping-bar');
+    const freeShippingText = document.getElementById('free-shipping-text');
+    const freeShippingPercent = document.getElementById('free-shipping-percent');
+    if (!container) return;
+
+    const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+    if (subtotalEl) subtotalEl.innerText = `$${subtotal.toLocaleString()}`;
+
+    // Progreso de envío gratis ($60.000 meta)
+    const threshold = 60000;
+    const percent = Math.min(100, Math.round((subtotal / threshold) * 100));
+    if (freeShippingBar) freeShippingBar.style.width = `${percent}%`;
+    if (freeShippingPercent) freeShippingPercent.innerText = `${percent}%`;
+    if (freeShippingText) {
+        if (percent >= 100) {
+            freeShippingText.innerHTML = `🎉 <strong>¡Tenés envío gratis bonificado!</strong>`;
+        } else {
+            const missing = threshold - subtotal;
+            freeShippingText.innerText = `Sumá $${missing.toLocaleString()} más para envío gratis`;
+        }
+    }
+
+    if (cart.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-16 space-y-3">
+                <div class="w-16 h-16 rounded-full bg-botanika-100 text-botanika-400 mx-auto flex items-center justify-center">
+                    <i data-lucide="shopping-bag" class="w-8 h-8"></i>
+                </div>
+                <h4 class="font-serif text-lg font-medium text-botanika-800">Tu carrito está vacío</h4>
+                <p class="text-xs text-botanika-700 max-w-xs mx-auto">Explorá nuestras plantas aclimatadas y encontrá tu compañera verde ideal.</p>
+                <button onclick="closeCartDrawer(); navigateTo('catalog');" class="btn-primary text-xs py-2.5 px-5 mt-2">
+                    Ir al Catálogo
+                </button>
+            </div>
+        `;
+    } else {
+        container.innerHTML = cart.map((item, idx) => `
+            <div class="flex items-center space-x-3 p-3 rounded-2xl bg-botanika-50 border border-botanika-200">
+                <img src="${item.image}" alt="${item.name}" class="w-16 h-16 rounded-xl object-cover bg-white flex-shrink-0">
+                <div class="flex-grow min-w-0">
+                    <h5 class="text-xs font-semibold text-botanika-800 truncate">${item.name}</h5>
+                    <p class="text-[11px] text-botanika-700 truncate">${item.pot}</p>
+                    <span class="font-serif font-bold text-sm text-botanika-800 block mt-0.5">$${item.price.toLocaleString()}</span>
+                </div>
+                <div class="flex flex-col items-end space-y-2">
+                    <button onclick="removeFromCart(${idx})" class="text-botanika-600 hover:text-botanika-terracota transition" title="Eliminar">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <div class="flex items-center border border-botanika-300 rounded-lg bg-white shadow-2xs">
+                        <button onclick="updateCartItemQty(${idx}, -1)" class="px-2 py-0.5 text-xs text-botanika-700 hover:bg-botanika-100 rounded-l">-</button>
+                        <span class="px-2 text-xs font-semibold text-botanika-800">${item.qty}</span>
+                        <button onclick="updateCartItemQty(${idx}, 1)" class="px-2 py-0.5 text-xs text-botanika-700 hover:bg-botanika-100 rounded-r">+</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function updateCartItemQty(index, change) {
+    if (!cart[index]) return;
+    cart[index].qty += change;
+    if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
+    }
+    updateCartBadge();
+    if (currentView === 'cart') renderView();
+}
+
+function removeFromCart(index) {
+    if (!cart[index]) return;
+    const removedName = cart[index].name;
+    cart.splice(index, 1);
+    updateCartBadge();
+    showToast(`"${removedName}" eliminado`);
+    if (currentView === 'cart') renderView();
+}
+
+// =============================================================================
+// WISHLIST / FAVORITOS (LOCALSTORAGE + COMPATIBILIDAD SUPABASE)
+// =============================================================================
+
+function saveWishlist() {
+    try {
+        localStorage.setItem('botanika_wishlist', JSON.stringify(wishlist));
+    } catch (e) {}
+    updateWishlistBadge();
+}
+
+function updateWishlistBadge() {
+    const badge = document.getElementById('wishlist-badge');
+    if (badge) badge.innerText = wishlist.length;
+    const drawerBadge = document.getElementById('wishlist-drawer-count');
+    if (drawerBadge) drawerBadge.innerText = wishlist.length;
+    renderWishlistDrawer();
+}
+
+function isInWishlist(productId) {
+    return wishlist.includes(productId);
+}
+
+function toggleWishlist(productId) {
+    const p = products.find(prod => prod.id === productId);
+    if (!p) return;
+
+    const idx = wishlist.indexOf(productId);
+    if (idx > -1) {
+        wishlist.splice(idx, 1);
+        showToast(`"${p.name}" removido de favoritos`, 'info');
+    } else {
+        wishlist.push(productId);
+        showToast(`"${p.name}" guardado en tus favoritos ❤️`);
+    }
+    saveWishlist();
+    if (currentView === 'home' || currentView === 'catalog') {
+        renderView();
+    }
+}
+
+function toggleWishlistDrawer() {
+    const drawer = document.getElementById('wishlist-drawer');
+    const backdrop = document.getElementById('wishlist-drawer-backdrop');
+    if (drawer && backdrop) {
+        const isActive = drawer.classList.contains('active');
+        if (isActive) {
+            closeWishlistDrawer();
+        } else {
+            drawer.classList.add('active');
+            backdrop.classList.add('active');
+            renderWishlistDrawer();
+        }
+    }
+}
+
+function closeWishlistDrawer() {
+    const drawer = document.getElementById('wishlist-drawer');
+    const backdrop = document.getElementById('wishlist-drawer-backdrop');
+    if (drawer && backdrop) {
+        drawer.classList.remove('active');
+        backdrop.classList.remove('active');
+    }
+}
+
+function renderWishlistDrawer() {
+    const container = document.getElementById('wishlist-drawer-items');
+    if (!container) return;
+
+    const wishProducts = products.filter(p => wishlist.includes(p.id));
+
+    if (wishProducts.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-16 space-y-3">
+                <div class="w-16 h-16 rounded-full bg-botanika-100 text-botanika-terracota mx-auto flex items-center justify-center">
+                    <i data-lucide="heart" class="w-8 h-8"></i>
+                </div>
+                <h4 class="font-serif text-lg font-medium text-botanika-800">No tienes favoritos aún</h4>
+                <p class="text-xs text-botanika-700 max-w-xs mx-auto">Toca el corazón en cualquier producto para guardarlo y revisarlo cuando quieras.</p>
+            </div>
+        `;
+    } else {
+        container.innerHTML = wishProducts.map(p => `
+            <div class="flex items-center space-x-3 p-3 rounded-2xl bg-botanika-50 border border-botanika-200">
+                <img src="${p.image}" alt="${p.name}" class="w-16 h-16 rounded-xl object-cover bg-white flex-shrink-0 cursor-pointer" onclick="closeWishlistDrawer(); navigateTo('product', ${p.id});">
+                <div class="flex-grow min-w-0">
+                    <h5 class="text-xs font-semibold text-botanika-800 truncate cursor-pointer hover:text-botanika-600" onclick="closeWishlistDrawer(); navigateTo('product', ${p.id});">${p.name}</h5>
+                    <p class="text-[11px] text-botanika-700">${p.category}</p>
+                    <span class="font-serif font-bold text-sm text-botanika-800 block mt-0.5">$${p.price.toLocaleString()}</span>
+                </div>
+                <div class="flex flex-col items-end space-y-2">
+                    <button onclick="toggleWishlist(${p.id})" class="text-botanika-terracota hover:opacity-80 transition" title="Remover">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="addToCart(${p.id}); closeWishlistDrawer();" class="btn-primary text-[10px] py-1.5 px-3 rounded-lg">
+                        Mover al Carrito
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+// =============================================================================
+// QUICK VIEW (VISTA RÁPIDA DE PRODUCTO)
+// =============================================================================
+
+function openQuickView(id) {
+    const p = products.find(prod => prod.id === id);
+    if (!p) return;
+
+    const modal = document.getElementById('quick-view-modal');
+    const card = document.getElementById('quick-view-card');
+    if (!modal || !card) return;
+
+    card.innerHTML = `
+        <button onclick="closeQuickView()" class="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md border border-botanika-200 flex items-center justify-center text-botanika-800 hover:bg-botanika-100 transition" aria-label="Cerrar">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <div class="grid grid-cols-1 md:grid-cols-2">
+            <div class="relative bg-botanika-100 h-72 md:h-full">
+                <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover">
+                ${p.badge ? `<span class="absolute top-4 left-4 bg-botanika-800/90 text-white text-[11px] uppercase tracking-wider font-semibold px-3 py-1 rounded-full shadow-sm">${p.badge}</span>` : ''}
+            </div>
+            <div class="p-6 md:p-8 flex flex-col justify-between space-y-5">
+                <div class="space-y-2">
+                    <span class="text-xs font-semibold uppercase tracking-widest text-botanika-600">${p.category}</span>
+                    <h3 class="font-serif text-2xl font-medium text-botanika-800">${p.name}</h3>
+                    <div class="flex items-center space-x-2 text-xs text-botanika-700">
+                        <span class="text-amber-500 font-bold">★ ${p.rating}</span>
+                        <span>(${p.reviewsCount} reseñas verificadas)</span>
+                    </div>
+                    <p class="font-serif text-2xl font-bold text-botanika-800 pt-1">$${p.price.toLocaleString()}</p>
+                    <p class="text-xs text-botanika-700 leading-relaxed pt-2">${p.description}</p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 py-3 border-y border-botanika-100 text-center text-xs text-botanika-700">
+                    <div>
+                        <span class="block font-bold text-[10px] uppercase text-botanika-600">Luz</span>
+                        <span>${p.light}</span>
+                    </div>
+                    <div>
+                        <span class="block font-bold text-[10px] uppercase text-botanika-600">Maceta</span>
+                        <span>${p.pot}</span>
+                    </div>
+                    <div>
+                        <span class="block font-bold text-[10px] uppercase text-botanika-600">Mascotas</span>
+                        <span>${p.petFriendly ? 'Pet Friendly 🐾' : 'No pet-friendly'}</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-2">
+                    <button onclick="addToCart(${p.id}); closeQuickView();" class="btn-primary w-full py-3.5 text-xs font-semibold">
+                        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                        <span>Agregar al Carrito</span>
+                    </button>
+                    <button onclick="closeQuickView(); navigateTo('product', ${p.id});" class="btn-secondary w-full py-3 text-xs">
+                        Ver Detalles Completos
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    card.classList.remove('scale-95');
+    card.classList.add('scale-100');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function closeQuickView() {
+    const modal = document.getElementById('quick-view-modal');
+    const card = document.getElementById('quick-view-card');
+    if (!modal || !card) return;
+    modal.classList.add('opacity-0', 'pointer-events-none');
+    card.classList.remove('scale-100');
+    card.classList.add('scale-95');
+}
+
+// =============================================================================
+// QUIZ BOTÁNICO: "¿QUÉ PLANTA ES PARA VOS?"
+// =============================================================================
+
+const QUIZ_QUESTIONS = [
+    {
+        title: "¿Cuánta luz natural recibe tu espacio?",
+        desc: "Mirá la habitación donde querés colocar tu planta a las 2 de la tarde.",
+        options: [
+            { label: "Mucha luz directa o sol de mañana", value: "high_light", hint: "Cerca de ventana norte o balcón soleado" },
+            { label: "Luz indirecta brillante / semisombra", value: "medium_light", hint: "Habitación luminosa pero sin sol abrasador" },
+            { label: "Poca luz o ventana a pulmón de edificio", value: "low_light", hint: "Espacios interiores más resguardados" }
+        ]
+    },
+    {
+        title: "¿Compartís el hogar con mascotas curiosas?",
+        desc: "Perros o gatos que tengan la costumbre de masticar hojas.",
+        options: [
+            { label: "Sí, necesito que sea 100% segura (Pet Friendly)", value: "pet_yes", hint: "Priorizamos variedades no tóxicas" },
+            { label: "No tengo mascotas o están fuera de su alcance", value: "pet_no", hint: "Podés elegir cualquier variedad botánica" }
+        ]
+    },
+    {
+        title: "¿Cuál es tu nivel de experiencia cuidando plantas?",
+        desc: "Sé honesto para que te recomendemos una compañera que disfrutes.",
+        options: [
+            { label: "Principiante total (a veces me olvido de regar)", value: "beginner", hint: "Variedades resistentes y de bajo mantenimiento" },
+            { label: "Intermedio (disfruto podar, abonar y ver brotes)", value: "intermediate", hint: "Crecimiento continuo y belleza escultural" },
+            { label: "Avanzado (busco una pieza de diseño botánico)", value: "advanced", hint: "Ejemplares imponentes con presencia" }
+        ]
+    }
+];
+
+function openQuizModal() {
+    quizState = { step: 0, answers: {}, recommendedProduct: null };
+    const modal = document.getElementById('quiz-modal');
+    const card = document.getElementById('quiz-modal-card');
+    if (modal && card) {
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        card.classList.remove('scale-95');
+        card.classList.add('scale-100');
+        renderQuizStep();
+    }
+}
+
+function closeQuizModal() {
+    const modal = document.getElementById('quiz-modal');
+    const card = document.getElementById('quiz-modal-card');
+    if (modal && card) {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        card.classList.remove('scale-100');
+        card.classList.add('scale-95');
+    }
+}
+
+function renderQuizStep() {
+    const body = document.getElementById('quiz-body');
+    if (!body) return;
+
+    if (quizState.step < QUIZ_QUESTIONS.length) {
+        const q = QUIZ_QUESTIONS[quizState.step];
+        const progress = Math.round(((quizState.step + 1) / QUIZ_QUESTIONS.length) * 100);
+
+        body.innerHTML = `
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs text-botanika-700 font-medium">
+                    <span>Pregunta ${quizState.step + 1} de ${QUIZ_QUESTIONS.length}</span>
+                    <span>${progress}%</span>
+                </div>
+                <div class="w-full bg-botanika-200 h-1.5 rounded-full overflow-hidden">
+                    <div class="bg-botanika-600 h-full transition-all duration-300" style="width: ${progress}%;"></div>
+                </div>
+                <h4 class="font-serif text-xl font-medium text-botanika-800 pt-3">${q.title}</h4>
+                <p class="text-xs text-botanika-700">${q.desc}</p>
+            </div>
+
+            <div class="space-y-3 pt-2">
+                ${q.options.map((opt, i) => `
+                    <button onclick="selectQuizAnswer('${opt.value}')" class="w-full text-left p-4 rounded-2xl border-2 border-botanika-200 hover:border-botanika-600 hover:bg-botanika-50 transition flex items-start space-x-3 group">
+                        <span class="w-6 h-6 rounded-full bg-botanika-200 text-botanika-800 group-hover:bg-botanika-600 group-hover:text-white flex items-center justify-center font-bold text-xs flex-shrink-0 transition">
+                            ${i + 1}
+                        </span>
+                        <div>
+                            <p class="font-medium text-sm text-botanika-800 group-hover:text-botanika-600 transition">${opt.label}</p>
+                            <p class="text-xs text-botanika-700 mt-0.5">${opt.hint}</p>
+                        </div>
+                    </button>
+                `).join('')}
+            </div>
+        `;
+    } else {
+        // Calcular recomendación
+        let recId = 1; // Default: Monstera
+        if (quizState.answers[0] === 'low_light' || quizState.answers[2] === 'beginner') {
+            recId = 5; // Kit Sansevieria
+        } else if (quizState.answers[1] === 'pet_yes') {
+            recId = 6; // Pilea (pet friendly)
+        } else if (quizState.answers[0] === 'high_light') {
+            recId = 2; // Ficus Lyrata
+        } else {
+            recId = 1; // Monstera Deliciosa
+        }
+
+        const rec = products.find(p => p.id === recId) || products[0];
+
+        body.innerHTML = `
+            <div class="text-center space-y-4">
+                <div class="inline-flex items-center space-x-2 bg-botanika-100 text-botanika-800 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-botanika-300">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-botanika-terracota"></i>
+                    <span>Tu Compañera Ideal Según Tus Respuestas</span>
+                </div>
+
+                <h4 class="font-serif text-2xl font-medium text-botanika-800">¡Encontramos tu match verde!</h4>
+
+                <div class="bg-botanika-50 p-4 rounded-3xl border border-botanika-200 text-left flex items-center space-x-4">
+                    <img src="${rec.image}" alt="${rec.name}" class="w-24 h-24 rounded-2xl object-cover bg-white flex-shrink-0 shadow-sm">
+                    <div class="min-w-0">
+                        <span class="text-[10px] uppercase font-bold tracking-wider text-botanika-600">${rec.category}</span>
+                        <h5 class="font-serif text-lg font-medium text-botanika-800 truncate">${rec.name}</h5>
+                        <p class="text-xs text-botanika-700 line-clamp-2 mt-0.5">${rec.description}</p>
+                        <span class="font-serif font-bold text-base text-botanika-800 block mt-1">$${rec.price.toLocaleString()}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button onclick="addToCart(${rec.id}); closeQuizModal();" class="btn-primary text-xs py-3 w-full">
+                        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                        <span>Agregar al Carrito</span>
+                    </button>
+                    <button onclick="closeQuizModal(); handleDirectBuy(${rec.id});" class="btn-terracota text-xs py-3 w-full">
+                        Comprar Ahora
+                    </button>
+                </div>
+
+                <button onclick="openQuizModal()" class="text-xs text-botanika-700 underline hover:text-botanika-800 block mx-auto pt-1">
+                    Volver a hacer el quiz
+                </button>
+            </div>
+        `;
+    }
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function selectQuizAnswer(val) {
+    quizState.answers[quizState.step] = val;
+    quizState.step += 1;
+    renderQuizStep();
+}
+
+// =============================================================================
+// CONFIGURADOR 3D "ARMÁ TU MACETA"
+// =============================================================================
+
+function selectPotFinish(finishKey) {
+    if (!POT_FINISHES[finishKey]) return;
+    selectedConfigFinish = finishKey;
+    const finish = POT_FINISHES[finishKey];
+
+    // Intentar comunicar a Spline Viewer si la escena soporta eventos o variables
+    const spline = document.getElementById('spline-configurator-viewer');
+    if (spline) {
+        try {
+            if (typeof spline.setVariable === 'function') {
+                spline.setVariable('Finish', finish.name);
+                spline.setVariable('Material', finishKey);
+            }
+            if (typeof spline.emitEvent === 'function') {
+                spline.emitEvent('changeFinish', finishKey);
+            }
+        } catch (e) {
+            console.log('Spline event interact:', finishKey);
+        }
+    }
+
+    // Actualizar UI del configurador
+    const priceEl = document.getElementById('config-price');
+    const nameEl = document.getElementById('config-name');
+    const descEl = document.getElementById('config-desc');
+    const previewImg = document.getElementById('config-fallback-img');
+
+    if (priceEl) priceEl.innerText = `$${finish.price.toLocaleString()}`;
+    if (nameEl) nameEl.innerText = finish.name;
+    if (descEl) descEl.innerText = finish.texture;
+    if (previewImg) previewImg.src = finish.image;
+
+    // Actualizar botones de acabado
+    ['terracota', 'blanca', 'gris'].forEach(k => {
+        const btn = document.getElementById(`finish-btn-${k}`);
+        if (btn) {
+            if (k === finishKey) {
+                btn.className = 'flex items-center space-x-2.5 p-3 rounded-2xl border-2 border-botanika-600 bg-botanika-50 text-left transition';
+            } else {
+                btn.className = 'flex items-center space-x-2.5 p-3 rounded-2xl border border-botanika-300 hover:border-botanika-600 bg-white text-left transition';
+            }
+        }
+    });
+
+    showToast(`Acabado cambiado: ${finish.name}`);
+}
+
+function addCustomPotToCart() {
+    const finish = POT_FINISHES[selectedConfigFinish];
+    const customItem = {
+        id: 300 + (selectedConfigFinish === 'terracota' ? 1 : selectedConfigFinish === 'blanca' ? 2 : 3),
+        name: `Maceta de Autor 20cm (${finish.name})`,
+        price: finish.price,
+        qty: 1,
+        image: finish.image,
+        pot: finish.name
+    };
+
+    const existing = cart.find(item => item.id === customItem.id);
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        cart.push(customItem);
+    }
+
+    updateCartBadge();
+    showToast(`"${customItem.name}" agregada al carrito`);
+    openCartDrawer();
+}
+
+// =============================================================================
+// NEWSLETTER
+// =============================================================================
+
+function handleNewsletterSubmit(e) {
+    e.preventDefault();
+    const input = document.getElementById('newsletter-email');
+    if (!input || !input.value) return;
+    showToast('¡Gracias por unirte! Usá el código BOTANIKA10 para 10% OFF 🌿');
+    input.value = '';
+}
+
+// =============================================================================
+// SCROLL REVEAL CON INTERSECTION OBSERVER
+// =============================================================================
+
+function initScrollReveal() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+    const elements = document.querySelectorAll('.reveal-on-scroll:not(.revealed)');
+    if (!elements.length) return;
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+
+        elements.forEach(el => observer.observe(el));
+    } else {
+        elements.forEach(el => el.classList.add('revealed'));
+    }
 }
 
 // =============================================================================
@@ -291,7 +972,7 @@ function updateAuthUI() {
             <button id="btn-header-login" onclick="openAuthModal('login')" class="text-xs font-semibold px-3 py-2 text-botanika-800 hover:text-botanika-600 transition">
                 Iniciar sesión
             </button>
-            <button id="btn-header-register" onclick="openAuthModal('register')" class="text-xs font-semibold px-3.5 py-2 bg-botanika-600 hover:bg-botanika-700 text-white rounded-xl transition shadow-sm">
+            <button id="btn-header-register" onclick="openAuthModal('register')" class="btn-primary text-xs py-2 px-3.5 rounded-xl">
                 Registrarse
             </button>
         `;
@@ -301,7 +982,7 @@ function updateAuthUI() {
             mobileContainer.innerHTML = `
                 <div class="grid grid-cols-2 gap-2 pt-2">
                     <button onclick="openAuthModal('login'); toggleMobileMenu();" class="w-full py-2 border border-botanika-600 rounded-xl text-xs font-semibold text-center">Iniciar sesión</button>
-                    <button onclick="openAuthModal('register'); toggleMobileMenu();" class="w-full py-2 bg-botanika-600 text-white rounded-xl text-xs font-semibold text-center">Registrarse</button>
+                    <button onclick="openAuthModal('register'); toggleMobileMenu();" class="w-full btn-primary py-2 text-xs text-center">Registrarse</button>
                 </div>
             `;
         }
@@ -350,147 +1031,119 @@ function openAuthModal(mode = 'login', isProtectedNotice = false) {
  */
 function closeAuthModal() {
     const modal = document.getElementById('auth-modal');
+    const card = document.getElementById('auth-modal-card');
     if (modal) {
         modal.classList.add('opacity-0', 'pointer-events-none');
-        const card = document.getElementById('auth-modal-card');
         if (card) {
             card.classList.remove('scale-100');
             card.classList.add('scale-95');
         }
     }
-    // Si se cancela el login, podemos limpiar la acción pendiente si se desea
+    const form = document.getElementById('auth-form');
+    if (form) form.reset();
 }
 
 /**
- * Alterna pestañas entre Login y Registro dentro del modal.
+ * Alterna entre Login y Registro dentro del modal.
  */
-function switchAuthTab(tab) {
-    authModalMode = tab;
+function switchAuthTab(mode) {
+    authModalMode = mode;
     const tabLogin = document.getElementById('auth-tab-login');
     const tabRegister = document.getElementById('auth-tab-register');
+    const title = document.getElementById('auth-modal-title');
     const nameGroup = document.getElementById('auth-name-group');
+    const nameInput = document.getElementById('auth-name-input');
     const confirmGroup = document.getElementById('auth-confirm-group');
-    const modalTitle = document.getElementById('auth-modal-title');
+    const confirmInput = document.getElementById('auth-confirm-input');
     const submitText = document.getElementById('auth-submit-text');
     const switchPrompt = document.getElementById('auth-switch-prompt');
     const switchLink = document.getElementById('auth-switch-link');
-    const errorBox = document.getElementById('auth-error-box');
 
-    if (errorBox) errorBox.classList.add('hidden');
-
-    if (tab === 'register') {
-        if (tabRegister) {
-            tabRegister.className = 'py-2 rounded-lg bg-white shadow-sm text-botanika-800 transition font-semibold';
-        }
-        if (tabLogin) {
-            tabLogin.className = 'py-2 rounded-lg text-botanika-700 hover:text-botanika-800 transition';
-        }
-        if (nameGroup) nameGroup.classList.remove('hidden');
-        if (confirmGroup) confirmGroup.classList.remove('hidden');
-        if (modalTitle) modalTitle.innerText = 'Crear Cuenta en Botanika';
-        if (submitText) submitText.innerText = 'Registrarse con Supabase';
-        if (switchPrompt) switchPrompt.innerText = '¿Ya tienes una cuenta?';
-        if (switchLink) switchLink.innerText = 'Inicia sesión';
-    } else {
-        if (tabLogin) {
-            tabLogin.className = 'py-2 rounded-lg bg-white shadow-sm text-botanika-800 transition font-semibold';
-        }
-        if (tabRegister) {
-            tabRegister.className = 'py-2 rounded-lg text-botanika-700 hover:text-botanika-800 transition';
-        }
+    if (mode === 'login') {
+        if (tabLogin) tabLogin.className = 'py-2 rounded-lg bg-white shadow-sm text-botanika-800 transition font-semibold';
+        if (tabRegister) tabRegister.className = 'py-2 rounded-lg text-botanika-700 hover:text-botanika-800 transition';
+        if (title) title.innerText = 'Iniciar Sesión';
         if (nameGroup) nameGroup.classList.add('hidden');
+        if (nameInput) nameInput.removeAttribute('required');
         if (confirmGroup) confirmGroup.classList.add('hidden');
-        if (modalTitle) modalTitle.innerText = 'Iniciar Sesión';
-        if (submitText) submitText.innerText = 'Ingresar a mi cuenta';
+        if (confirmInput) confirmInput.removeAttribute('required');
+        if (submitText) submitText.innerText = 'Iniciar Sesión';
         if (switchPrompt) switchPrompt.innerText = '¿No tienes cuenta todavía?';
         if (switchLink) switchLink.innerText = 'Regístrate gratis';
+    } else {
+        if (tabRegister) tabRegister.className = 'py-2 rounded-lg bg-white shadow-sm text-botanika-800 transition font-semibold';
+        if (tabLogin) tabLogin.className = 'py-2 rounded-lg text-botanika-700 hover:text-botanika-800 transition';
+        if (title) title.innerText = 'Crear Cuenta';
+        if (nameGroup) nameGroup.classList.remove('hidden');
+        if (nameInput) nameInput.setAttribute('required', 'true');
+        if (confirmGroup) confirmGroup.classList.remove('hidden');
+        if (confirmInput) confirmInput.setAttribute('required', 'true');
+        if (submitText) submitText.innerText = 'Crear mi Cuenta';
+        if (switchPrompt) switchPrompt.innerText = '¿Ya tienes una cuenta registrada?';
+        if (switchLink) switchLink.innerText = 'Ingresar ahora';
     }
 }
 
-/**
- * Alterna el modo del modal al hacer clic en el enlace inferior.
- */
 function toggleAuthMode() {
     switchAuthTab(authModalMode === 'login' ? 'register' : 'login');
 }
 
 /**
- * Procesa el envío del formulario de autenticación con Supabase Auth.
+ * Maneja el envío del formulario de Login / Registro a Supabase Auth.
  */
 async function handleAuthSubmit(event) {
     event.preventDefault();
+
     const email = document.getElementById('auth-email-input')?.value?.trim();
     const password = document.getElementById('auth-password-input')?.value;
     const fullName = document.getElementById('auth-name-input')?.value?.trim();
     const confirmPassword = document.getElementById('auth-confirm-input')?.value;
+
     const errorBox = document.getElementById('auth-error-box');
     const errorMsg = document.getElementById('auth-error-message');
+    const successBox = document.getElementById('auth-success-box');
+    const successMsg = document.getElementById('auth-success-message');
     const submitBtn = document.getElementById('auth-submit-btn');
     const submitText = document.getElementById('auth-submit-text');
 
-    if (!email || !password) {
-        showAuthError('Por favor completa todos los campos requeridos.');
+    if (errorBox) errorBox.classList.add('hidden');
+    if (successBox) successBox.classList.add('hidden');
+
+    if (authModalMode === 'register' && password !== confirmPassword) {
+        if (errorBox && errorMsg) {
+            errorMsg.innerText = 'Las contraseñas no coinciden.';
+            errorBox.classList.remove('hidden');
+        }
         return;
     }
 
-    if (authModalMode === 'register') {
-        if (password.length < 6) {
-            showAuthError('La contraseña debe tener un mínimo de 6 caracteres.');
-            return;
-        }
-        if (password !== confirmPassword) {
-            showAuthError('Las contraseñas no coinciden.');
-            return;
-        }
-    }
-
-    // Estado visual de carga
     if (submitBtn) submitBtn.disabled = true;
-    if (submitText) submitText.innerText = 'Verificando con Supabase...';
+    if (submitText) submitText.innerText = 'Conectando con Supabase...';
 
     try {
         if (authModalMode === 'register') {
-            const result = await window.botanikaSupabase.signUp(email, password, fullName);
-
-            if (result && result.session) {
-                currentUser = result.session.user || await window.botanikaSupabase.getUser();
-                updateAuthUI();
-                closeAuthModal();
-                showToast('¡Registro exitoso en Botanika!');
-
-                // Ejecutar acción pendiente tras registro exitoso
-                if (pendingAction) {
-                    const action = pendingAction;
-                    pendingAction = null;
-                    if (action.type === 'checkout') {
-                        navigateTo('checkout');
-                    } else if (action.type === 'pay_mercadopago') {
-                        handleMercadoPagoPayment();
-                    } else if (action.type === 'direct_buy' && action.productId) {
-                        handleDirectBuy(action.productId);
-                    }
-                }
-            } else {
-                // Cuenta creada pero requiere confirmación por email (Supabase default)
-                const successBox = document.getElementById('auth-success-box');
-                const successMsg = document.getElementById('auth-success-message');
-                if (successBox && successMsg) {
-                    successMsg.innerHTML = `<strong>¡Cuenta creada!</strong> Te enviamos un correo de confirmación a <u>${email}</u>. Por favor revisa tu bandeja para verificarla e iniciar sesión.`;
-                    successBox.classList.remove('hidden');
-                }
-                switchAuthTab('login');
-                showToast('Verifica tu correo para activar tu cuenta.');
+            const { user, session } = await window.botanikaSupabase.signUp(email, password, fullName);
+            currentUser = session?.user || user;
+            if (successBox && successMsg) {
+                successMsg.innerText = '¡Cuenta creada con éxito en Supabase!';
+                successBox.classList.remove('hidden');
             }
+            showToast('¡Registro exitoso! Bienvenido a Botanika.');
         } else {
-            await window.botanikaSupabase.signIn(email, password);
-            showToast('¡Bienvenido de vuelta a Botanika!');
+            const { user } = await window.botanikaSupabase.signIn(email, password);
+            currentUser = user;
+            if (successBox && successMsg) {
+                successMsg.innerText = '¡Sesión iniciada correctamente!';
+                successBox.classList.remove('hidden');
+            }
+            showToast('¡Sesión iniciada con éxito!');
+        }
 
-            // Obtener usuario actualizado
-            currentUser = await window.botanikaSupabase.getUser();
-            updateAuthUI();
+        updateAuthUI();
+
+        setTimeout(() => {
             closeAuthModal();
-
-            // Ejecutar acción pendiente tras login exitoso (Ruta Protegida)
+            if (submitBtn) submitBtn.disabled = false;
             if (pendingAction) {
                 const action = pendingAction;
                 pendingAction = null;
@@ -498,39 +1151,25 @@ async function handleAuthSubmit(event) {
                     navigateTo('checkout');
                 } else if (action.type === 'pay_mercadopago') {
                     handleMercadoPagoPayment();
-                } else if (action.type === 'direct_buy' && action.productId) {
-                    handleDirectBuy(action.productId);
                 }
+            } else if (currentView === 'checkout') {
+                renderView();
             }
-        }
-    } catch (err) {
-        console.error('Error de autenticación:', err);
-        let readableMessage = err.message || 'Error al autenticar.';
-        if (readableMessage.includes('Invalid login credentials')) {
-            readableMessage = 'Correo o contraseña incorrectos. Verifica tus datos.';
-        } else if (readableMessage.includes('User already registered')) {
-            readableMessage = 'Este correo ya tiene una cuenta registrada. Inicia sesión.';
-        }
-        showAuthError(readableMessage);
-    } finally {
-        if (submitBtn) submitBtn.disabled = false;
-        if (submitText) {
-            submitText.innerText = authModalMode === 'register' ? 'Registrarse con Supabase' : 'Ingresar a mi cuenta';
-        }
-    }
-}
+        }, 650);
 
-function showAuthError(msg) {
-    const errorBox = document.getElementById('auth-error-box');
-    const errorMsg = document.getElementById('auth-error-message');
-    if (errorBox && errorMsg) {
-        errorMsg.innerText = msg;
-        errorBox.classList.remove('hidden');
+    } catch (err) {
+        console.error('Error de autenticación con Supabase:', err);
+        if (errorBox && errorMsg) {
+            errorMsg.innerText = err.message || 'Error de autenticación. Verifica tus credenciales.';
+            errorBox.classList.remove('hidden');
+        }
+        if (submitBtn) submitBtn.disabled = false;
+        if (submitText) submitText.innerText = authModalMode === 'login' ? 'Iniciar Sesión' : 'Crear mi Cuenta';
     }
 }
 
 /**
- * Cierre de sesión de Supabase Auth
+ * Cierre de sesión seguro en Supabase.
  */
 async function handleSignOut() {
     try {
@@ -541,21 +1180,18 @@ async function handleSignOut() {
         if (currentView === 'profile' || currentView === 'checkout') {
             navigateTo('home');
         }
-    } catch (err) {
-        console.error('Error al cerrar sesión:', err);
+    } catch (e) {
+        console.warn('Error al cerrar sesión:', e);
     }
 }
 
 /**
  * Compra directa desde la Landing Page con ruta protegida.
- * Si el usuario no tiene sesión activa, guarda la intención de compra
- * y le solicita iniciar sesión o registrarse.
  */
 function handleDirectBuy(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
-    // Agregar el producto al carrito si no está
     const existing = cart.find(item => item.id === productId);
     if (!existing) {
         cart.push({
@@ -569,14 +1205,12 @@ function handleDirectBuy(productId) {
         updateCartBadge();
     }
 
-    // Ruta protegida: ¿Usuario logueado?
     if (!currentUser) {
         pendingAction = { type: 'checkout', productId };
         openAuthModal('login', true);
         return;
     }
 
-    // Usuario autenticado: ir directo al checkout
     navigateTo('checkout');
 }
 
@@ -584,9 +1218,6 @@ function handleDirectBuy(productId) {
 // PROCESO DE PAGO SEGURO CON MERCADO PAGO Y ÓRDENES EN SUPABASE
 // =============================================================================
 
-/**
- * Determina dinámicamente la URL base del backend según el entorno de ejecución.
- */
 function getApiBaseUrl() {
     if (window.BOTANIKA_API_URL) {
         return window.BOTANIKA_API_URL.replace(/\/+$/, '');
@@ -602,11 +1233,10 @@ function getApiBaseUrl() {
  */
 async function handleMercadoPagoPayment() {
     if (cart.length === 0) {
-        showToast('Tu carrito está vacío.');
+        showToast('Tu carrito está vacío.', 'error');
         return;
     }
 
-    // 1. RUTA PROTEGIDA: Verificar sesión en Supabase
     if (!currentUser) {
         pendingAction = { type: 'pay_mercadopago' };
         openAuthModal('login', true);
@@ -641,7 +1271,6 @@ async function handleMercadoPagoPayment() {
         const buyerCity = document.getElementById('buyer-city')?.value?.trim() || 'Buenos Aires';
         const buyerZip = document.getElementById('buyer-zip')?.value?.trim() || '1425';
 
-        // 2. CREAR ORDEN EN SUPABASE con estado 'pendiente'
         showToast('Creando orden de compra en Supabase...');
         const supabaseOrder = await window.botanikaSupabase.createOrder({
             items: cart,
@@ -673,7 +1302,6 @@ async function handleMercadoPagoPayment() {
             `;
         }
 
-        // 3. CONECTAR CON BACKEND DE MERCADO PAGO ASOCIANDO orderId
         const apiBaseUrl = getApiBaseUrl();
         let currentFullUrl = '';
         try {
@@ -710,7 +1338,6 @@ async function handleMercadoPagoPayment() {
             throw new Error(data.message || 'No se pudo generar la preferencia en Mercado Pago.');
         }
 
-        // 4. REDIRECCIÓN A LA PASARELA OFICIAL
         const checkoutUrl = data.checkoutUrl || data.initPoint || data.sandboxInitPoint;
         if (checkoutUrl) {
             const redirectMsg = data.isSandbox 
@@ -725,7 +1352,7 @@ async function handleMercadoPagoPayment() {
         }
     } catch (error) {
         console.error('Error al procesar compra con Mercado Pago:', error);
-        showToast(error.message || 'Error de conexión con el backend de pagos.');
+        showToast(error.message || 'Error de conexión con el backend de pagos.', 'error');
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = originalContent;
@@ -734,7 +1361,7 @@ async function handleMercadoPagoPayment() {
 }
 
 // =============================================================================
-// DETECCIÓN DE RETORNO TRAS EL PAGO (Éxito / Fallo / Pendiente)
+// DETECCIÓN DE RETORNO TRAS EL PAGO
 // =============================================================================
 
 async function handlePaymentReturnAndInit() {
@@ -746,51 +1373,41 @@ async function handlePaymentReturnAndInit() {
     if (paymentId) lastPaymentId = paymentId;
     if (externalRef) lastOrderId = externalRef;
 
-    // Inicializar usuario desde Supabase
     currentUser = await window.botanikaSupabase.getUser();
     updateAuthUI();
+    updateWishlistBadge();
 
     if (status === 'approved') {
         cart = [];
         updateCartBadge();
 
-        // Actualizar estado de orden en Supabase a 'aprobado'
         if (lastOrderId) {
             try {
                 await window.botanikaSupabase.updateOrderStatus(lastOrderId, 'aprobado', paymentId);
-                console.log(`✅ [Supabase] Orden ${lastOrderId} actualizada a "aprobado".`);
-            } catch (supaErr) {
-                console.warn('No se pudo actualizar estado en Supabase:', supaErr);
+                console.log('✅ Orden actualizada a "aprobado" en Supabase');
+            } catch (e) {
+                console.warn('No se pudo actualizar estado en Supabase:', e);
             }
         }
-
         navigateTo('success');
-        showToast('¡Pago aprobado con éxito vía Mercado Pago!');
-        window.history.replaceState({}, document.title, window.location.pathname);
-        return;
     } else if (status === 'failure' || status === 'rejected') {
         if (lastOrderId) {
-            await window.botanikaSupabase.updateOrderStatus(lastOrderId, 'rechazado', paymentId);
+            try {
+                await window.botanikaSupabase.updateOrderStatus(lastOrderId, 'rechazado', paymentId);
+            } catch (e) {}
         }
+        showToast('El pago no pudo procesarse. Por favor reintenta con otro medio.', 'error');
         navigateTo('cart');
-        showToast('El pago en Mercado Pago fue cancelado o rechazado.');
-        window.history.replaceState({}, document.title, window.location.pathname);
-        return;
-    } else if (status === 'pending') {
-        if (lastOrderId) {
-            await window.botanikaSupabase.updateOrderStatus(lastOrderId, 'pendiente', paymentId);
-        }
+    } else if (status === 'pending' || status === 'in_process') {
+        showToast('Tu pago está pendiente de acreditación en Mercado Pago.', 'info');
         navigateTo('profile');
-        showToast('Tu pago con Mercado Pago se encuentra en proceso.');
-        window.history.replaceState({}, document.title, window.location.pathname);
-        return;
+    } else {
+        renderView();
     }
-
-    renderView();
 }
 
 // =============================================================================
-// RENDERIZADO DE VISTAS (SPA Switcher)
+// RENDERIZADO CENTRAL DE VISTAS (SPA)
 // =============================================================================
 
 function renderView() {
@@ -817,7 +1434,6 @@ function renderView() {
             break;
         case 'profile':
             main.innerHTML = renderProfile();
-            // Cargar órdenes asíncronas
             loadUserOrdersAsync();
             break;
         case 'success':
@@ -830,43 +1446,47 @@ function renderView() {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+    initScrollReveal();
 }
 
 // =============================================================================
-// SECCIÓN 1 A 8: LANDING PAGE OFICIAL BOTANIKA
+// LANDING PAGE CON HERO SPLINE, BENTO GRID Y CONFIGURADOR 3D
 // =============================================================================
 
 function renderHome() {
+    const isReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     return `
         <!-- =================================================================== -->
-        <!-- SECCIÓN 2: HERO BANNER CON PROPUESTA DE VALOR                       -->
+        <!-- SECCIÓN 2: HERO CON SPLINE 3D & FALLBACK DE ALTO RENDIMIENTO        -->
         <!-- =================================================================== -->
-        <section id="landing-hero" class="relative bg-gradient-to-b from-botanika-100 via-botanika-50 to-botanika-50 overflow-hidden py-16 md:py-24 border-b border-botanika-200">
+        <section id="landing-hero" class="relative bg-gradient-to-b from-botanika-100 via-botanika-50 to-botanika-50 overflow-hidden py-12 md:py-20 border-b border-botanika-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
-                <div class="lg:col-span-7 space-y-6">
-                    <div class="inline-flex items-center space-x-2 bg-botanika-200/80 text-botanika-800 text-xs tracking-widest uppercase font-semibold px-3.5 py-1.5 rounded-full border border-botanika-300 shadow-sm">
+                <div class="lg:col-span-6 space-y-6 reveal-on-scroll">
+                    <div class="inline-flex items-center space-x-2 bg-white/80 backdrop-blur-md text-botanika-800 text-xs tracking-widest uppercase font-semibold px-4 py-2 rounded-full border border-botanika-200 shadow-subtle">
                         <i data-lucide="sparkles" class="w-3.5 h-3.5 text-botanika-terracota"></i>
-                        <span>Studio Botánico & Diseño Sostenible</span>
+                        <span>Studio Botánico & Diseño Sustentable</span>
                     </div>
 
-                    <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl text-botanika-800 leading-tight">
+                    <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl text-botanika-800 leading-[1.12] tracking-tight">
                         Naturaleza viva, <br>
                         <span class="italic text-botanika-600 font-normal">diseño y calma</span> para tu hogar.
                     </h1>
 
                     <p class="text-botanika-700 text-base sm:text-lg max-w-xl leading-relaxed">
-                        Curamos plantas de interior aclimatadas en vivero y diseñamos macetas artesanales en terracota y cerámica. Envíos climatizados en 48hs con garantía de reposición.
+                        Curamos plantas de interior aclimatadas en vivero y torneamos macetas artesanales en terracota y cerámica. Envíos climatizados en 48hs con garantía de reposición.
                     </p>
 
                     <!-- Acciones principales -->
-                    <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 pt-3">
-                        <button onclick="goToLandingSection('productos')" class="bg-botanika-600 hover:bg-botanika-700 text-white font-semibold px-8 py-4 rounded-xl transition shadow-md flex items-center justify-center space-x-2 text-base">
+                    <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 pt-2">
+                        <button onclick="goToLandingSection('productos')" class="btn-primary py-4 px-8 text-base">
                             <span>Comprar Ahora</span>
                             <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </button>
-                        <button onclick="goToLandingSection('como-funciona')" class="bg-white border-2 border-botanika-300 text-botanika-800 hover:border-botanika-600 font-medium px-8 py-4 rounded-xl transition text-center shadow-sm">
-                            ¿Cómo funciona?
+                        <button onclick="goToLandingSection('configurador')" class="btn-secondary py-4 px-8 text-base flex items-center justify-center space-x-2">
+                            <i data-lucide="box" class="w-4 h-4 text-botanika-terracota"></i>
+                            <span>Armá tu Maceta 3D</span>
                         </button>
                     </div>
 
@@ -887,20 +1507,38 @@ function renderHome() {
                     </div>
                 </div>
 
-                <!-- Imagen Hero con aura difuminada -->
-                <div class="lg:col-span-5 relative flex justify-center">
-                    <div class="absolute w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-botanika-300/40 -z-10 filter blur-3xl"></div>
-                    <div class="relative w-full max-w-md bg-white p-3 rounded-3xl shadow-2xl border border-botanika-200">
-                        <img src="https://images.unsplash.com/photo-1545241047-6083a3684587?auto=format&fit=crop&q=80&w=700" 
-                            alt="Ficus Lyrata en Maceta Artesanal Botanika" 
-                            class="rounded-2xl object-cover h-[420px] w-full transform hover:scale-[1.01] transition duration-500">
-                        
-                        <!-- Floating Pill Badge -->
-                        <div class="absolute -bottom-5 -left-4 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-botanika-200 flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-xl bg-botanika-600 text-white flex items-center justify-center font-serif text-lg">🌿</div>
-                            <div>
-                                <p class="text-xs font-bold text-botanika-800">100% Climatizadas</p>
-                                <p class="text-[11px] text-botanika-700">Listas para iluminar tu espacio</p>
+                <!-- Visor 3D Spline con Fallback fluido -->
+                <div class="lg:col-span-6 relative flex justify-center reveal-on-scroll stagger-2">
+                    <div class="spline-hero-container w-full" id="hero-spline-box">
+                        ${!isReducedMotion ? `
+                            <spline-viewer 
+                                id="spline-hero-viewer"
+                                url="${SPLINE_HERO_URL}" 
+                                loading="lazy"
+                                hint="Arrastra con el ratón para rotar la planta 3D"
+                                onload="document.getElementById('hero-spline-box')?.classList.add('spline-loaded')">
+                            </spline-viewer>
+                        ` : ''}
+
+                        <!-- Capa de Fallback (visible mientras carga Spline o en modo reduced-motion) -->
+                        <div class="spline-fallback-layer">
+                            <div class="relative w-full h-full p-6 flex flex-col justify-between">
+                                <div class="flex justify-between items-center z-10">
+                                    <span class="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-semibold text-botanika-800 shadow-sm border border-botanika-200 flex items-center space-x-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        <span>3D Interactivo Spline</span>
+                                    </span>
+                                    <span class="text-[11px] text-botanika-700 bg-white/70 backdrop-blur-md px-2.5 py-1 rounded-full">Rotar 360°</span>
+                                </div>
+                                
+                                <img src="https://images.unsplash.com/photo-1545241047-6083a3684587?auto=format&fit=crop&q=80&w=800" 
+                                    alt="Ficus Lyrata en Maceta Artesanal Botanika" 
+                                    class="absolute inset-0 w-full h-full object-cover">
+
+                                <div class="z-10 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-botanika-200 max-w-xs self-start">
+                                    <p class="text-xs font-bold text-botanika-800">Ficus Lyrata & Maceta Terracota</p>
+                                    <p class="text-[11px] text-botanika-700">Aclimatada en vivero • Lista para tu living</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -910,57 +1548,91 @@ function renderHome() {
         </section>
 
         <!-- =================================================================== -->
-        <!-- SECCIÓN 3: BENEFICIOS / CARACTERÍSTICAS                             -->
+        <!-- SECCIÓN 3: BENEFICIOS EN LAYOUT TIPO "BENTO GRID"                   -->
         <!-- =================================================================== -->
         <section id="landing-beneficios" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-            <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
+            <div class="text-center max-w-2xl mx-auto mb-16 space-y-3 reveal-on-scroll">
                 <span class="text-botanika-terracota font-semibold text-xs tracking-widest uppercase">Por qué elegir Botanika</span>
                 <h2 class="font-serif text-3xl sm:text-4xl font-medium text-botanika-800">Cuidado botánico en cada detalle</h2>
                 <p class="text-botanika-700 text-sm sm:text-base leading-relaxed">
-                    No solo vendemos plantas: te brindamos el ecosistema completo para que crezcan felices y transformen la energía de tu entorno.
+                    Ecosistema integral para que tus plantas prosperen, con diseño biofílico y logística especializada antiestrés.
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="bento-grid">
                 
-                <div class="bg-white p-8 rounded-3xl border border-botanika-200 shadow-sm hover:shadow-md transition space-y-4">
-                    <div class="w-12 h-12 rounded-2xl bg-botanika-100 text-botanika-600 flex items-center justify-center">
-                        <i data-lucide="sprout" class="w-6 h-6"></i>
+                <!-- Bento 1 (Grande horizontal) -->
+                <div class="bento-card md:col-span-8 bg-gradient-to-br from-white via-white to-botanika-50 reveal-on-scroll stagger-1">
+                    <div class="bento-glow bg-botanika-200 top-0 right-0"></div>
+                    <div class="space-y-4 max-w-lg z-10">
+                        <div class="w-12 h-12 rounded-2xl bg-botanika-100 text-botanika-600 flex items-center justify-center shadow-subtle">
+                            <i data-lucide="sprout" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-botanika-600">Curaduría Botánica</span>
+                        <h3 class="font-serif text-2xl font-medium text-botanika-800">Seleccionadas a mano y aclimatadas en vivero</h3>
+                        <p class="text-botanika-700 text-sm leading-relaxed">
+                            No intermediamos plantas frágiles. Cada ejemplar pasa por un proceso de aclimatación de 3 semanas en nuestro invernáculo para garantizar raíces fuertes antes de llegar a tus manos.
+                        </p>
                     </div>
-                    <h3 class="font-serif text-xl font-medium text-botanika-800">Curaduría Experta</h3>
-                    <p class="text-botanika-700 text-xs sm:text-sm leading-relaxed">
-                        Seleccionamos manualmente cada ejemplar en vivero y lo aclimatamos para garantizar raíces vigorosas antes de enviarlo.
-                    </p>
+                    <div class="pt-6 z-10 flex items-center space-x-4 text-xs font-semibold text-botanika-800">
+                        <span class="flex items-center space-x-1.5"><i data-lucide="check-circle" class="w-4 h-4 text-botanika-600"></i> Raíces inspeccionadas</span>
+                        <span class="flex items-center space-x-1.5"><i data-lucide="check-circle" class="w-4 h-4 text-botanika-600"></i> Cero plagas</span>
+                    </div>
                 </div>
 
-                <div class="bg-white p-8 rounded-3xl border border-botanika-200 shadow-sm hover:shadow-md transition space-y-4">
-                    <div class="w-12 h-12 rounded-2xl bg-botanika-100 text-botanika-600 flex items-center justify-center">
-                        <i data-lucide="package-check" class="w-6 h-6"></i>
+                <!-- Bento 2 (Vertical) -->
+                <div class="bento-card md:col-span-4 bg-white reveal-on-scroll stagger-2">
+                    <div class="bento-glow bg-botanika-terracota/20 bottom-0 left-0"></div>
+                    <div class="space-y-4 z-10">
+                        <div class="w-12 h-12 rounded-2xl bg-botanika-100 text-botanika-terracota flex items-center justify-center shadow-subtle">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold uppercase tracking-wider text-botanika-terracota">Compromiso Total</span>
+                        <h3 class="font-serif text-xl font-medium text-botanika-800">Garantía Verde 30 Días</h3>
+                        <p class="text-botanika-700 text-xs sm:text-sm leading-relaxed">
+                            Si tu compañera verde no se adapta a la luminosidad de tu hogar en el primer mes, nuestro equipo botánico te asesora o te enviamos un reemplazo sin costo.
+                        </p>
                     </div>
-                    <h3 class="font-serif text-xl font-medium text-botanika-800">Packaging Climatizado</h3>
-                    <p class="text-botanika-700 text-xs sm:text-sm leading-relaxed">
-                        Empaque ecológico térmico antiestrés que protege el follaje, mantiene la humedad y evita golpes durante el traslado.
-                    </p>
+                    <div class="pt-6 z-10">
+                        <span class="inline-flex items-center space-x-1 text-xs font-semibold text-botanika-terracota">
+                            <span>Reposición 100% asegurada</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </span>
+                    </div>
                 </div>
 
-                <div class="bg-white p-8 rounded-3xl border border-botanika-200 shadow-sm hover:shadow-md transition space-y-4">
-                    <div class="w-12 h-12 rounded-2xl bg-botanika-100 text-botanika-terracota flex items-center justify-center">
-                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                <!-- Bento 3 -->
+                <div class="bento-card md:col-span-4 bg-white reveal-on-scroll stagger-3">
+                    <div class="space-y-4 z-10">
+                        <div class="w-12 h-12 rounded-2xl bg-botanika-100 text-botanika-600 flex items-center justify-center shadow-subtle">
+                            <i data-lucide="package-check" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-serif text-xl font-medium text-botanika-800">Packaging Térmico Antiestrés</h3>
+                        <p class="text-botanika-700 text-xs sm:text-sm leading-relaxed">
+                            Caja de cartón reciclable reforzada con fijación de cepellón y aislante térmico. El follaje viaja intacto sin sufrir oscilaciones de temperatura.
+                        </p>
                     </div>
-                    <h3 class="font-serif text-xl font-medium text-botanika-800">Garantía Verde 30 Días</h3>
-                    <p class="text-botanika-700 text-xs sm:text-sm leading-relaxed">
-                        Si tu compañera verde no se adapta a tu espacio en sus primeros 30 días, te asesoramos sin cargo o te la reemplazamos.
-                    </p>
                 </div>
 
-                <div class="bg-white p-8 rounded-3xl border border-botanika-200 shadow-sm hover:shadow-md transition space-y-4">
-                    <div class="w-12 h-12 rounded-2xl bg-botanika-100 text-botanika-600 flex items-center justify-center">
-                        <i data-lucide="palette" class="w-6 h-6"></i>
+                <!-- Bento 4 (Grande horizontal complementario) -->
+                <div class="bento-card md:col-span-8 bg-gradient-to-r from-botanika-50 to-white reveal-on-scroll stagger-4">
+                    <div class="bento-glow bg-botanika-200/50 top-0 left-1/2"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center z-10">
+                        <div class="space-y-3">
+                            <div class="w-12 h-12 rounded-2xl bg-botanika-100 text-botanika-600 flex items-center justify-center shadow-subtle">
+                                <i data-lucide="palette" class="w-6 h-6"></i>
+                            </div>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-botanika-600">Artesanía de Autor</span>
+                            <h3 class="font-serif text-2xl font-medium text-botanika-800">Macetas con drenaje biofílico</h3>
+                            <p class="text-botanika-700 text-xs sm:text-sm leading-relaxed">
+                                Diseños exclusivos moldeados en barro de alta porosidad y gres esmaltado. Cuentan con orificio de drenaje y plato a medida para proteger tus muebles.
+                            </p>
+                        </div>
+                        <div class="rounded-2xl overflow-hidden h-40 bg-white border border-botanika-200 shadow-sm">
+                            <img src="https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=400" 
+                                alt="Macetas de autor" class="w-full h-full object-cover">
+                        </div>
                     </div>
-                    <h3 class="font-serif text-xl font-medium text-botanika-800">Macetas de Autor</h3>
-                    <p class="text-botanika-700 text-xs sm:text-sm leading-relaxed">
-                        Piezas artesanales torneadas a mano con materiales nobles, tonos naturales y orificio de drenaje profesional.
-                    </p>
                 </div>
 
             </div>
@@ -971,45 +1643,45 @@ function renderHome() {
         <!-- =================================================================== -->
         <section id="landing-como-funciona" class="bg-botanika-100/70 border-y border-botanika-200 py-20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
-                    <span class="text-botanika-terracota font-semibold text-xs tracking-widest uppercase">Paso a paso sencillo</span>
+                <div class="text-center max-w-2xl mx-auto mb-16 space-y-3 reveal-on-scroll">
+                    <span class="text-botanika-terracota font-semibold text-xs tracking-widest uppercase">Experiencia sin fricciones</span>
                     <h2 class="font-serif text-3xl sm:text-4xl font-medium text-botanika-800">¿Cómo llega tu selva urbana?</h2>
                     <p class="text-botanika-700 text-sm sm:text-base leading-relaxed">
-                        Diseñamos una experiencia de compra fluida y sin fricciones de punta a punta.
+                        Flujo ágil con pago seguro en cuotas y seguimiento en tiempo real.
                     </p>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     
-                    <div class="relative bg-white p-6 rounded-2xl border border-botanika-200 space-y-3 shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-botanika-600 text-white flex items-center justify-center font-serif font-bold text-lg">1</div>
+                    <div class="bg-white p-6 rounded-3xl border border-botanika-200 space-y-3 shadow-subtle hover:shadow-card transition reveal-on-scroll stagger-1">
+                        <div class="w-10 h-10 rounded-2xl bg-botanika-600 text-white flex items-center justify-center font-serif font-bold text-lg">1</div>
                         <h4 class="font-serif text-lg font-medium text-botanika-800">Elegí tu compañera</h4>
                         <p class="text-xs text-botanika-700 leading-relaxed">
-                            Seleccioná la planta o kit según la cantidad de luz de tu ambiente (mucha luz, semisombra o baja luz).
+                            Seleccioná la planta según la luz de tu espacio o hacé nuestro quiz interactivo para una sugerencia a medida.
                         </p>
                     </div>
 
-                    <div class="relative bg-white p-6 rounded-2xl border border-botanika-200 space-y-3 shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-botanika-600 text-white flex items-center justify-center font-serif font-bold text-lg">2</div>
+                    <div class="bg-white p-6 rounded-3xl border border-botanika-200 space-y-3 shadow-subtle hover:shadow-card transition reveal-on-scroll stagger-2">
+                        <div class="w-10 h-10 rounded-2xl bg-botanika-600 text-white flex items-center justify-center font-serif font-bold text-lg">2</div>
                         <h4 class="font-serif text-lg font-medium text-botanika-800">Personalizá tu maceta</h4>
                         <p class="text-xs text-botanika-700 leading-relaxed">
-                            Elegí el acabado: terracota artesanal, cerámica blanca o gris cálido con sustrato especial ya armado.
+                            Elegí el acabado: terracota artesanal, cerámica blanca o gris cálido con sustrato aireado ya preparado.
                         </p>
                     </div>
 
-                    <div class="relative bg-white p-6 rounded-2xl border border-botanika-200 space-y-3 shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-botanika-600 text-white flex items-center justify-center font-serif font-bold text-lg">3</div>
-                        <h4 class="font-serif text-lg font-medium text-botanika-800">Pagá seguro en cuotas</h4>
+                    <div class="bg-white p-6 rounded-3xl border border-botanika-200 space-y-3 shadow-subtle hover:shadow-card transition reveal-on-scroll stagger-3">
+                        <div class="w-10 h-10 rounded-2xl bg-botanika-600 text-white flex items-center justify-center font-serif font-bold text-lg">3</div>
+                        <h4 class="font-serif text-lg font-medium text-botanika-800">Pagá con Mercado Pago</h4>
                         <p class="text-xs text-botanika-700 leading-relaxed">
-                            Pagá con Mercado Pago Checkout Pro (tarjetas, dinero en cuenta o cuotas) con confirmación instantánea.
+                            Checkout Pro con tarjetas, dinero en cuenta o cuotas sin interés y registro protegido en tu perfil de Supabase.
                         </p>
                     </div>
 
-                    <div class="relative bg-white p-6 rounded-2xl border border-botanika-200 space-y-3 shadow-sm">
-                        <div class="w-10 h-10 rounded-full bg-botanika-terracota text-white flex items-center justify-center font-serif font-bold text-lg">4</div>
+                    <div class="bg-white p-6 rounded-3xl border border-botanika-200 space-y-3 shadow-subtle hover:shadow-card transition reveal-on-scroll stagger-4">
+                        <div class="w-10 h-10 rounded-2xl bg-botanika-terracota text-white flex items-center justify-center font-serif font-bold text-lg">4</div>
                         <h4 class="font-serif text-lg font-medium text-botanika-800">Recibí en 48hs</h4>
                         <p class="text-xs text-botanika-700 leading-relaxed">
-                            Recibila en tu puerta en óptimo estado y escaneá el QR con tu guía digital de riego personalizada.
+                            Entrega refrigerada en tu puerta con código QR a tu guía digital personalizada de cuidados y riego.
                         </p>
                     </div>
 
@@ -1018,33 +1690,149 @@ function renderHome() {
         </section>
 
         <!-- =================================================================== -->
-        <!-- SECCIÓN 5: PRODUCTO O PLANES CON PRECIO Y BOTÓN "COMPRAR"           -->
+        <!-- SECCIÓN: CONFIGURADOR "ARMÁ TU MACETA" CON SPLINE 3D                -->
+        <!-- =================================================================== -->
+        <section id="landing-configurador" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+            <div class="text-center max-w-2xl mx-auto mb-16 space-y-3 reveal-on-scroll">
+                <span class="text-botanika-terracota font-semibold text-xs tracking-widest uppercase">Configurador 3D Interactivo</span>
+                <h2 class="font-serif text-3xl sm:text-4xl font-medium text-botanika-800">Armá tu Maceta de Autor</h2>
+                <p class="text-botanika-700 text-sm sm:text-base leading-relaxed">
+                    Elegí el acabado artesanal que mejor armoniza con tu ambiente. El modelo 3D responde en tiempo real a tu elección.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                
+                <!-- Visor 3D Spline para la maceta -->
+                <div class="lg:col-span-7 pot-configurator-card h-[440px] relative overflow-hidden bg-gradient-to-br from-botanika-100 to-botanika-50 reveal-on-scroll">
+                    ${!isReducedMotion ? `
+                        <spline-viewer 
+                            id="spline-configurator-viewer"
+                            url="${SPLINE_CONFIGURATOR_URL}" 
+                            loading="lazy"
+                            hint="Arrastra para inspeccionar el acabado de la maceta">
+                        </spline-viewer>
+                    ` : ''}
+
+                    <!-- Fallback / Preview dinámico si la escena está cargando -->
+                    <div class="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
+                        <img id="config-fallback-img" src="${POT_FINISHES[selectedConfigFinish].image}" 
+                            alt="Maceta de Autor" 
+                            class="max-h-[340px] w-auto object-contain rounded-2xl shadow-xl transition-all duration-300">
+                    </div>
+                    
+                    <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-botanika-800 border border-botanika-200 shadow-sm flex items-center space-x-1.5">
+                        <i data-lucide="box" class="w-3.5 h-3.5 text-botanika-terracota"></i>
+                        <span id="config-name">${POT_FINISHES[selectedConfigFinish].name}</span>
+                    </div>
+                </div>
+
+                <!-- Panel de Selección de Acabados & Acción -->
+                <div class="lg:col-span-5 bg-white p-8 rounded-3xl border border-botanika-200 shadow-card space-y-6 reveal-on-scroll stagger-2">
+                    <div>
+                        <span class="text-xs font-semibold text-botanika-600 uppercase tracking-widest">Paso 1: Seleccioná el Acabado</span>
+                        <h3 class="font-serif text-2xl font-medium text-botanika-800 mt-1">Material & Terminación</h3>
+                        <p id="config-desc" class="text-xs text-botanika-700 mt-2 leading-relaxed">
+                            ${POT_FINISHES[selectedConfigFinish].texture}
+                        </p>
+                    </div>
+
+                    <!-- Botones de selección de acabado -->
+                    <div class="space-y-3">
+                        <button id="finish-btn-terracota" onclick="selectPotFinish('terracota')" class="w-full flex items-center justify-between p-3.5 rounded-2xl border-2 border-botanika-600 bg-botanika-50 text-left transition">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-6 h-6 rounded-full border border-black/10 flex-shrink-0" style="background-color: #D07A58;"></span>
+                                <div>
+                                    <p class="font-medium text-sm text-botanika-800">Terracota Artesanal</p>
+                                    <p class="text-[11px] text-botanika-700">Barro natural de alta porosidad</p>
+                                </div>
+                            </div>
+                            <span class="font-serif font-bold text-sm text-botanika-800">$12,500</span>
+                        </button>
+
+                        <button id="finish-btn-blanca" onclick="selectPotFinish('blanca')" class="w-full flex items-center justify-between p-3.5 rounded-2xl border border-botanika-300 hover:border-botanika-600 bg-white text-left transition">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-6 h-6 rounded-full border border-black/10 flex-shrink-0" style="background-color: #F7F6F2;"></span>
+                                <div>
+                                    <p class="font-medium text-sm text-botanika-800">Cerámica Blanca Esmaltada</p>
+                                    <p class="text-[11px] text-botanika-700">Acabado satinado suave</p>
+                                </div>
+                            </div>
+                            <span class="font-serif font-bold text-sm text-botanika-800">$14,900</span>
+                        </button>
+
+                        <button id="finish-btn-gris" onclick="selectPotFinish('gris')" class="w-full flex items-center justify-between p-3.5 rounded-2xl border border-botanika-300 hover:border-botanika-600 bg-white text-left transition">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-6 h-6 rounded-full border border-black/10 flex-shrink-0" style="background-color: #7A827B;"></span>
+                                <div>
+                                    <p class="font-medium text-sm text-botanika-800">Gris Cálido Mineral</p>
+                                    <p class="text-[11px] text-botanika-700">Tacto sedoso contemporáneo</p>
+                                </div>
+                            </div>
+                            <span class="font-serif font-bold text-sm text-botanika-800">$15,200</span>
+                        </button>
+                    </div>
+
+                    <!-- Precio y Botón al Carrito Existente -->
+                    <div class="pt-4 border-t border-botanika-200 space-y-4">
+                        <div class="flex items-baseline justify-between">
+                            <span class="text-xs text-botanika-700">Precio configurado:</span>
+                            <span id="config-price" class="font-serif text-3xl font-bold text-botanika-800">$12,500</span>
+                        </div>
+                        <button onclick="addCustomPotToCart()" class="btn-primary w-full py-4 text-sm font-semibold flex items-center justify-center space-x-2">
+                            <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                            <span>Agregar al Carrito Existente</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECCIÓN 5: COLECCIÓN DESTACADA (CARDS ENRIQUECIDAS)                 -->
         <!-- =================================================================== -->
         <section id="landing-productos" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 reveal-on-scroll">
                 <div class="space-y-2">
                     <span class="text-botanika-terracota font-semibold text-xs tracking-widest uppercase">Colección Destacada</span>
                     <h2 class="font-serif text-3xl sm:text-4xl font-medium text-botanika-800">Elegí tu planta y comprá online</h2>
-                    <p class="text-botanika-700 text-sm">Flujo integrado con registro seguro en Supabase y pago con Mercado Pago.</p>
+                    <p class="text-botanika-700 text-sm">Flujo integrado con sesión segura en Supabase y pago con Mercado Pago.</p>
                 </div>
-                <button onclick="navigateTo('catalog')" class="mt-4 md:mt-0 inline-flex items-center space-x-1 text-sm font-semibold text-botanika-600 hover:text-botanika-800">
-                    <span>Ver catálogo completo (6 productos)</span>
+                <button onclick="navigateTo('catalog')" class="mt-4 md:mt-0 inline-flex items-center space-x-2 text-sm font-semibold text-botanika-600 hover:text-botanika-800 transition">
+                    <span>Ver catálogo completo (${products.length} productos)</span>
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </button>
             </div>
 
-            <!-- Grilla de Planes / Productos con Botón Directo "Comprar" -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                ${products.slice(0, 4).map(p => `
-                    <div class="group bg-white rounded-3xl p-5 shadow-sm hover:shadow-lg transition border border-botanika-200 flex flex-col justify-between">
+            <!-- Grilla de Productos Destacados -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                ${products.slice(0, 4).map((p, i) => `
+                    <div class="product-card reveal-on-scroll stagger-${i + 1}">
                         <div>
-                            <div class="relative rounded-2xl overflow-hidden bg-botanika-50 h-60 mb-4 cursor-pointer" onclick="navigateTo('product', ${p.id})">
-                                <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                ${p.badge ? `<span class="absolute top-3 left-3 bg-botanika-800/90 text-white text-[10px] uppercase font-semibold px-2.5 py-1 rounded-full">${p.badge}</span>` : ''}
+                            <div class="product-image-container cursor-pointer" onclick="navigateTo('product', ${p.id})">
+                                <img src="${p.image}" alt="${p.name}" loading="lazy">
+                                ${p.badge ? `<span class="absolute top-3 left-3 bg-botanika-800/90 backdrop-blur-md text-white text-[10px] uppercase font-semibold px-2.5 py-1 rounded-full shadow-sm">${p.badge}</span>` : ''}
+                                
+                                <!-- Acciones Flotantes (Quick View + Wishlist) -->
+                                <div class="product-actions-overlay" onclick="event.stopPropagation();">
+                                    <button onclick="toggleWishlist(${p.id})" class="btn-action-round ${isInWishlist(p.id) ? 'active' : ''}" title="Guardar en favoritos" aria-label="Favorito">
+                                        <i data-lucide="heart" class="w-4 h-4 ${isInWishlist(p.id) ? 'fill-botanika-terracota text-botanika-terracota' : ''}"></i>
+                                    </button>
+                                    <button onclick="openQuickView(${p.id})" class="btn-action-round" title="Vista rápida" aria-label="Vista rápida">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
                             </div>
                             
-                            <span class="text-[11px] uppercase tracking-wider font-semibold text-botanika-600">${p.category}</span>
-                            <h3 onclick="navigateTo('product', ${p.id})" class="font-serif text-lg font-medium text-botanika-800 cursor-pointer hover:text-botanika-600 transition mt-1 line-clamp-1">${p.name}</h3>
+                            <div class="flex items-center justify-between text-[11px] text-botanika-600 font-semibold mb-1">
+                                <span class="uppercase tracking-wider">${p.category}</span>
+                                <span class="text-amber-500 font-bold flex items-center space-x-1">
+                                    ★ ${p.rating}
+                                </span>
+                            </div>
+
+                            <h3 onclick="navigateTo('product', ${p.id})" class="font-serif text-lg font-medium text-botanika-800 cursor-pointer hover:text-botanika-600 transition line-clamp-1">${p.name}</h3>
                             <p class="text-xs text-botanika-700 mt-1 line-clamp-2">${p.description}</p>
                             
                             <div class="mt-3 py-2 border-y border-botanika-100 flex items-center justify-between text-xs text-botanika-700">
@@ -1059,10 +1847,15 @@ function renderHome() {
                                 <span class="font-serif font-bold text-2xl text-botanika-800">$${p.price.toLocaleString()}</span>
                             </div>
 
-                            <button id="btn-buy-product-${p.id}" onclick="handleDirectBuy(${p.id})" class="w-full bg-botanika-600 hover:bg-botanika-700 text-white font-semibold py-3 rounded-xl transition text-sm flex items-center justify-center space-x-2 shadow-sm">
-                                <i data-lucide="shopping-bag" class="w-4 h-4"></i>
-                                <span>Comprar Ahora</span>
-                            </button>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="addToCart(${p.id})" class="btn-secondary text-xs py-3 w-full" title="Agregar al carrito">
+                                    <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                                    <span>Al Carrito</span>
+                                </button>
+                                <button id="btn-buy-product-${p.id}" onclick="handleDirectBuy(${p.id})" class="btn-primary text-xs py-3 w-full">
+                                    <span>Comprar</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `).join('')}
@@ -1070,26 +1863,45 @@ function renderHome() {
         </section>
 
         <!-- =================================================================== -->
-        <!-- SECCIÓN 6: TESTIMONIOS / RESEÑAS DE CLIENTES                        -->
+        <!-- BANNER INTERACTIVO DEL QUIZ                                         -->
+        <!-- =================================================================== -->
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 reveal-on-scroll">
+            <div class="bg-gradient-to-r from-botanika-700 to-botanika-800 rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden shadow-card">
+                <div class="relative z-10 max-w-xl space-y-4">
+                    <span class="bg-botanika-600/60 px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase text-botanika-200">Recomendador Inteligente</span>
+                    <h3 class="font-serif text-3xl sm:text-4xl font-medium leading-tight">¿No estás seguro de cuál es la planta ideal para tu casa?</h3>
+                    <p class="text-sm text-botanika-100 leading-relaxed">
+                        Respondé 3 preguntas rápidas sobre luz, mascotas y tiempo disponible para descubrir tu compañera perfecta.
+                    </p>
+                    <button onclick="openQuizModal()" class="btn-terracota py-3.5 px-6 text-sm font-semibold mt-2">
+                        <span>Iniciar Quiz de Plantas</span>
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================================================== -->
+        <!-- SECCIÓN 6: RESEÑAS Y TESTIMONIOS VERIFICADOS                        -->
         <!-- =================================================================== -->
         <section id="landing-testimonios" class="bg-botanika-100/60 border-t border-botanika-200 py-20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center max-w-xl mx-auto mb-16 space-y-3">
+                <div class="text-center max-w-xl mx-auto mb-16 space-y-3 reveal-on-scroll">
                     <span class="text-botanika-terracota font-semibold text-xs tracking-widest uppercase">Comunidad Verde</span>
                     <h2 class="font-serif text-3xl sm:text-4xl font-medium text-botanika-800">Lo que dicen nuestros clientes</h2>
-                    <p class="text-botanika-700 text-sm">Más de 2.500 personas ya disfrutan de sus espacios con Botanika.</p>
+                    <p class="text-botanika-700 text-sm">Más de 2.500 hogares ya disfrutan de sus espacios transformados con Botanika.</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     
-                    <div class="bg-white p-8 rounded-3xl border border-botanika-200 space-y-4 shadow-sm">
+                    <div class="bg-white p-8 rounded-3xl border border-botanika-200 space-y-4 shadow-subtle hover:shadow-card transition reveal-on-scroll stagger-1">
                         <div class="flex text-amber-500 space-x-1">
                             ★★★★★
                         </div>
                         <p class="text-sm text-botanika-700 leading-relaxed italic">
                             "Compré la Monstera con maceta terracota. Llegó en menos de 48hs en una caja impecable y con las hojas perfectas. El pago con Mercado Pago fue instantáneo."
                         </p>
-                        <div class="flex items-center space-x-3 pt-2">
+                        <div class="flex items-center space-x-3 pt-2 border-t border-botanika-100">
                             <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120" class="w-10 h-10 rounded-full object-cover">
                             <div>
                                 <h4 class="font-medium text-sm text-botanika-800">Sofía Valenzuela</h4>
@@ -1098,14 +1910,14 @@ function renderHome() {
                         </div>
                     </div>
 
-                    <div class="bg-white p-8 rounded-3xl border border-botanika-200 space-y-4 shadow-sm">
+                    <div class="bg-white p-8 rounded-3xl border border-botanika-200 space-y-4 shadow-subtle hover:shadow-card transition reveal-on-scroll stagger-2">
                         <div class="flex text-amber-500 space-x-1">
                             ★★★★★
                         </div>
                         <p class="text-sm text-botanika-700 leading-relaxed italic">
                             "El Kit Principiante me salvó la vida. Siempre se me morían las plantas, pero con la Sansevieria y los recordatorios de riego por correo ya lleva 3 meses hermosa."
                         </p>
-                        <div class="flex items-center space-x-3 pt-2">
+                        <div class="flex items-center space-x-3 pt-2 border-t border-botanika-100">
                             <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120" class="w-10 h-10 rounded-full object-cover">
                             <div>
                                 <h4 class="font-medium text-sm text-botanika-800">Martín Benítez</h4>
@@ -1114,14 +1926,14 @@ function renderHome() {
                         </div>
                     </div>
 
-                    <div class="bg-white p-8 rounded-3xl border border-botanika-200 space-y-4 shadow-sm">
+                    <div class="bg-white p-8 rounded-3xl border border-botanika-200 space-y-4 shadow-subtle hover:shadow-card transition reveal-on-scroll stagger-3">
                         <div class="flex text-amber-500 space-x-1">
                             ★★★★★
                         </div>
                         <p class="text-sm text-botanika-700 leading-relaxed italic">
                             "Excelente calidad en las macetas artesanales, tienen el peso y drenaje justo. La integración de la cuenta en la web es súper cómoda para ver mis órdenes."
                         </p>
-                        <div class="flex items-center space-x-3 pt-2">
+                        <div class="flex items-center space-x-3 pt-2 border-t border-botanika-100">
                             <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=120" class="w-10 h-10 rounded-full object-cover">
                             <div>
                                 <h4 class="font-medium text-sm text-botanika-800">Camila Morales</h4>
@@ -1135,46 +1947,42 @@ function renderHome() {
         </section>
 
         <!-- =================================================================== -->
-        <!-- SECCIÓN 7: PREGUNTAS FRECUENTES (FAQ ACORDEÓN)                      -->
+        <!-- SECCIÓN 7: PREGUNTAS FRECUENTES (FAQ ACORDEÓN ACCESIBLE)            -->
         <!-- =================================================================== -->
         <section id="landing-faq" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-            <div class="text-center mb-12 space-y-3">
+            <div class="text-center mb-12 space-y-3 reveal-on-scroll">
                 <span class="text-botanika-terracota font-semibold text-xs tracking-widest uppercase">Despejá tus dudas</span>
                 <h2 class="font-serif text-3xl sm:text-4xl font-medium text-botanika-800">Preguntas Frecuentes</h2>
-                <p class="text-botanika-700 text-sm">Todo lo que necesitas saber sobre envíos, pagos y cuidados.</p>
+                <p class="text-botanika-700 text-sm">Todo lo que necesitás saber sobre envíos, pagos con Mercado Pago y cuidados.</p>
             </div>
 
             <div class="space-y-4">
                 ${[
                     {
-                        q: "¿Cómo viajan las plantas sin dañarse?",
-                        a: "Utilizamos cajas de cartón reforzado con diseño estructural exclusivo de Botanika. El cepellón de la planta va anclado a la base para evitar movimientos, y las hojas cuentan con una camisa térmica protectora que conserva la humedad."
+                        q: "¿Cómo garantizan que la planta llegue en óptimo estado?",
+                        a: "Utilizamos cajas de cartón corrugado reforzado diseñadas a medida que inmovilizan la maceta y protegen el follaje. Si tu planta sufre algún percance durante el transporte, la Garantía Verde de 30 días te envía un reemplazo sin costo."
                     },
                     {
                         q: "¿Qué medios de pago aceptan?",
-                        a: "Aceptamos todas las opciones disponibles en Mercado Pago: tarjetas de crédito (con promociones bancarias y cuotas), tarjetas de débito, dinero en cuenta de Mercado Pago y transferencias bancarias directas."
+                        a: "Procesamos todos los pagos a través de Mercado Pago Checkout Pro. Podés abonar con dinero en cuenta, tarjetas de crédito (con promociones bancarias y cuotas sin interés), tarjetas de débito o transferencia bancaria."
                     },
                     {
-                        q: "¿Qué pasa si una planta llega marchita o sufre en el viaje?",
-                        a: "Tenés nuestra Garantía Verde de 30 días. Si tu planta no llega en óptimas condiciones, nos enviás una foto por WhatsApp o correo en las primeras 48hs y te enviamos un ejemplar de reposición sin ningún costo."
+                        q: "¿Cuánto demora la entrega?",
+                        a: "En CABA y Gran Buenos Aires entregamos en un plazo de 48 horas hábiles con nuestra logística refrigerada propia. Para el interior del país, el despacho se realiza en 48/72hs con seguimiento online."
                     },
                     {
-                        q: "No tengo experiencia previa, ¿cuál es la mejor opción para arrancar?",
-                        a: "Te recomendamos nuestro 'Kit Principiante con Sansevieria' o la 'Monstera Deliciosa'. Son especies muy nobles y resistentes que toleran descuidos de riego y se adaptan a distintas intensidades de luz."
-                    },
-                    {
-                        q: "¿Hacen envíos a todo el país?",
-                        a: "Realizamos envíos en 48hs hábiles en CABA y Gran Buenos Aires mediante flete refrigerado propio, y despachos al interior del país con operadores logísticos especializados en botánica viva."
+                        q: "¿Qué pasa si no sé cómo cuidarla?",
+                        a: "Todas las compras incluyen un código QR en la etiqueta de la maceta que te da acceso a la ficha botánica digital: frecuencias de riego según la estación, temperatura recomendada y señales de alerta."
                     }
-                ].map((faq, idx) => `
-                    <div class="bg-white rounded-2xl border border-botanika-200 overflow-hidden transition">
-                        <button onclick="toggleFaq(${idx})" class="w-full p-5 text-left flex justify-between items-center space-x-4 hover:bg-botanika-50/50 transition">
-                            <span class="font-serif text-base sm:text-lg font-medium text-botanika-800">${faq.q}</span>
-                            <i data-lucide="${openFaqIndex === idx ? 'chevron-up' : 'chevron-down'}" class="w-5 h-5 text-botanika-600 flex-shrink-0"></i>
+                ].map((item, idx) => `
+                    <div class="bg-white rounded-2xl border border-botanika-200 overflow-hidden shadow-subtle transition">
+                        <button onclick="toggleFaq(${idx})" class="w-full p-5 text-left flex justify-between items-center font-medium text-botanika-800 hover:text-botanika-600 focus-visible:outline-none" aria-expanded="${openFaqIndex === idx}">
+                            <span class="font-serif text-lg">${item.q}</span>
+                            <i data-lucide="${openFaqIndex === idx ? 'chevron-up' : 'chevron-down'}" class="w-5 h-5 text-botanika-600 transition-transform flex-shrink-0 ml-4"></i>
                         </button>
                         ${openFaqIndex === idx ? `
                             <div class="px-5 pb-5 text-sm text-botanika-700 leading-relaxed border-t border-botanika-100 pt-3">
-                                ${faq.a}
+                                ${item.a}
                             </div>
                         ` : ''}
                     </div>
@@ -1190,27 +1998,46 @@ function toggleFaq(idx) {
 }
 
 // =============================================================================
-// OTRAS VISTAS (Catálogo, Ficha Producto, Carrito, Checkout, Perfil, Estilos)
+// CATÁLOGO DE PRODUCTOS CON BÚSQUEDA, FILTROS Y ORDENAMIENTO
 // =============================================================================
 
 function renderProductCard(p) {
     return `
-        <div class="group bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition border border-botanika-200 flex flex-col justify-between">
+        <div class="product-card">
             <div>
-                <div class="relative rounded-xl overflow-hidden bg-botanika-50 h-64 mb-4 cursor-pointer" onclick="navigateTo('product', ${p.id})">
-                    <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                    ${p.badge ? `<span class="absolute top-3 left-3 bg-botanika-800/90 text-white text-[10px] uppercase font-semibold px-2.5 py-1 rounded-full">${p.badge}</span>` : ''}
+                <div class="product-image-container cursor-pointer" onclick="navigateTo('product', ${p.id})">
+                    <img src="${p.image}" alt="${p.name}" loading="lazy">
+                    ${p.badge ? `<span class="absolute top-3 left-3 bg-botanika-800/90 text-white text-[10px] uppercase font-semibold px-2.5 py-1 rounded-full shadow-sm">${p.badge}</span>` : ''}
+                    
+                    <div class="product-actions-overlay" onclick="event.stopPropagation();">
+                        <button onclick="toggleWishlist(${p.id})" class="btn-action-round ${isInWishlist(p.id) ? 'active' : ''}" title="Guardar en favoritos" aria-label="Favorito">
+                            <i data-lucide="heart" class="w-4 h-4 ${isInWishlist(p.id) ? 'fill-botanika-terracota text-botanika-terracota' : ''}"></i>
+                        </button>
+                        <button onclick="openQuickView(${p.id})" class="btn-action-round" title="Vista rápida" aria-label="Vista rápida">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
-                <h3 onclick="navigateTo('product', ${p.id})" class="font-medium text-botanika-800 cursor-pointer hover:text-botanika-600 transition line-clamp-1">${p.name}</h3>
-                <p class="text-xs text-botanika-700 mt-1">${p.category} • Maceta ${p.pot}</p>
+
+                <div class="flex items-center justify-between text-[11px] text-botanika-600 font-semibold mb-1">
+                    <span class="uppercase tracking-wider">${p.category}</span>
+                    <span class="text-amber-500 font-bold flex items-center space-x-1">
+                        ★ ${p.rating}
+                    </span>
+                </div>
+
+                <h3 onclick="navigateTo('product', ${p.id})" class="font-serif text-lg font-medium text-botanika-800 cursor-pointer hover:text-botanika-600 transition line-clamp-1">${p.name}</h3>
+                <p class="text-xs text-botanika-700 mt-1 line-clamp-2">${p.description}</p>
+                <div class="mt-2 text-[11px] text-botanika-700">Luz: <strong>${p.light}</strong> • Maceta: <strong>${p.pot}</strong></div>
             </div>
-            <div class="flex items-center justify-between mt-4 pt-3 border-t border-botanika-100">
-                <span class="font-serif font-semibold text-lg">$${p.price.toLocaleString()}</span>
-                <div class="flex space-x-1">
-                    <button onclick="addToCart(${p.id})" class="bg-botanika-100 hover:bg-botanika-200 text-botanika-800 p-2.5 rounded-xl transition" title="Agregar al carrito">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
+
+            <div class="mt-4 pt-3 border-t border-botanika-100 flex items-center justify-between">
+                <span class="font-serif font-bold text-lg text-botanika-800">$${p.price.toLocaleString()}</span>
+                <div class="flex space-x-1.5">
+                    <button onclick="addToCart(${p.id})" class="btn-secondary p-2.5 rounded-xl" title="Agregar al carrito">
+                        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
                     </button>
-                    <button onclick="handleDirectBuy(${p.id})" class="bg-botanika-600 hover:bg-botanika-700 text-white px-3 py-2 rounded-xl transition text-xs font-semibold">
+                    <button onclick="handleDirectBuy(${p.id})" class="btn-primary px-3.5 py-2 rounded-xl text-xs font-semibold">
                         Comprar
                     </button>
                 </div>
@@ -1219,55 +2046,189 @@ function renderProductCard(p) {
     `;
 }
 
+function getFilteredProducts() {
+    return products.filter(p => {
+        // Filtro texto búsqueda
+        if (catalogFilter.search) {
+            const query = catalogFilter.search.toLowerCase();
+            const matchesName = p.name.toLowerCase().includes(query);
+            const matchesDesc = p.description.toLowerCase().includes(query);
+            const matchesCat = p.category.toLowerCase().includes(query);
+            if (!matchesName && !matchesDesc && !matchesCat) return false;
+        }
+
+        // Filtro categoría
+        if (catalogFilter.category !== 'Todas' && p.category !== catalogFilter.category) {
+            return false;
+        }
+
+        // Filtro luz
+        if (catalogFilter.light !== 'Todas' && p.light !== catalogFilter.light) {
+            return false;
+        }
+
+        // Filtro precio máximo
+        if (p.price > catalogFilter.maxPrice) {
+            return false;
+        }
+
+        return true;
+    }).sort((a, b) => {
+        if (catalogFilter.sortBy === 'price_asc') return a.price - b.price;
+        if (catalogFilter.sortBy === 'price_desc') return b.price - a.price;
+        if (catalogFilter.sortBy === 'name_asc') return a.name.localeCompare(b.name);
+        if (catalogFilter.sortBy === 'rating_desc') return b.rating - a.rating;
+        return a.id - b.id;
+    });
+}
+
 function renderCatalog() {
+    const filtered = getFilteredProducts();
+
     return `
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <div class="mb-8">
-                <h1 class="font-serif text-3xl font-medium">Catálogo de Productos</h1>
-                <p class="text-botanika-700 text-sm mt-1">Explora nuestra selección completa de plantas, macetas de diseño y sustratos.</p>
+            <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 class="font-serif text-3xl sm:text-4xl font-medium text-botanika-800">Catálogo de Productos</h1>
+                    <p class="text-botanika-700 text-sm mt-1">Explorá nuestra colección completa de plantas de interior, macetas de diseño y sustratos.</p>
+                </div>
+
+                <!-- Barra de búsqueda rápida -->
+                <div class="relative w-full md:w-80">
+                    <input type="text" id="catalog-search-input" value="${catalogFilter.search}" oninput="handleCatalogSearch(event)" placeholder="Buscar planta, maceta o sustrato..." class="w-full bg-white border border-botanika-300 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:outline-none focus:border-botanika-600 shadow-2xs">
+                    <i data-lucide="search" class="w-4 h-4 text-botanika-400 absolute left-3.5 top-3"></i>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                <div class="bg-white p-6 rounded-2xl border border-botanika-200 h-fit space-y-6">
+                
+                <!-- Sidebar de Filtros -->
+                <div class="bg-white p-6 rounded-3xl border border-botanika-200 h-fit space-y-6 shadow-subtle">
                     <div class="flex justify-between items-center border-b border-botanika-200 pb-4">
-                        <h3 class="font-medium text-lg flex items-center"><i data-lucide="sliders-horizontal" class="w-4 h-4 mr-2"></i> Filtros</h3>
-                        <button onclick="showToast('Filtros restablecidos')" class="text-xs text-botanika-terracota underline font-medium">Limpiar</button>
+                        <h3 class="font-medium text-lg flex items-center text-botanika-800">
+                            <i data-lucide="sliders-horizontal" class="w-4 h-4 mr-2 text-botanika-600"></i>
+                            Filtros
+                        </h3>
+                        <button onclick="resetCatalogFilters()" class="text-xs text-botanika-terracota underline font-medium hover:text-botanika-800 transition">
+                            Limpiar todo
+                        </button>
                     </div>
 
+                    <!-- Filtro Categoría -->
                     <div>
                         <h4 class="text-xs font-bold tracking-wider uppercase text-botanika-800 mb-3">Categoría</h4>
                         <div class="space-y-2 text-sm">
-                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" checked class="rounded border-botanika-300 text-botanika-600"> <span>Plantas de Interior</span></label>
-                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" checked class="rounded border-botanika-300 text-botanika-600"> <span>Macetas & Soportes</span></label>
-                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" checked class="rounded border-botanika-300 text-botanika-600"> <span>Sustratos & Nutrientes</span></label>
-                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" checked class="rounded border-botanika-300 text-botanika-600"> <span>Kits Completos</span></label>
+                            ${['Todas', 'Plantas', 'Macetas', 'Sustratos', 'Kits'].map(cat => `
+                                <label class="flex items-center space-x-2.5 cursor-pointer">
+                                    <input type="radio" name="cat_filter" ${catalogFilter.category === cat ? 'checked' : ''} onchange="setCatalogCategory('${cat}')" class="text-botanika-600">
+                                    <span class="text-xs ${catalogFilter.category === cat ? 'font-semibold text-botanika-800' : 'text-botanika-700'}">${cat}</span>
+                                </label>
+                            `).join('')}
                         </div>
                     </div>
 
-                    <button onclick="showToast('Filtros aplicados')" class="w-full bg-botanika-600 hover:bg-botanika-700 text-white rounded-xl py-3 text-sm font-medium transition">Aplicar Filtros</button>
+                    <!-- Filtro Luz -->
+                    <div class="border-t border-botanika-100 pt-4">
+                        <h4 class="text-xs font-bold tracking-wider uppercase text-botanika-800 mb-3">Requerimiento de Luz</h4>
+                        <div class="space-y-2 text-sm">
+                            ${['Todas', 'Indirecta', 'Mucha luz', 'Poca luz'].map(light => `
+                                <label class="flex items-center space-x-2.5 cursor-pointer">
+                                    <input type="radio" name="light_filter" ${catalogFilter.light === light ? 'checked' : ''} onchange="setCatalogLight('${light}')" class="text-botanika-600">
+                                    <span class="text-xs ${catalogFilter.light === light ? 'font-semibold text-botanika-800' : 'text-botanika-700'}">${light}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Filtro Precio Máximo -->
+                    <div class="border-t border-botanika-100 pt-4 space-y-2">
+                        <div class="flex justify-between items-baseline text-xs text-botanika-800">
+                            <span class="font-bold uppercase tracking-wider">Precio Máximo</span>
+                            <span class="font-serif font-bold text-botanika-600">$${catalogFilter.maxPrice.toLocaleString()}</span>
+                        </div>
+                        <input type="range" min="8000" max="60000" step="2000" value="${catalogFilter.maxPrice}" oninput="setCatalogMaxPrice(this.value)" class="w-full accent-botanika-600">
+                    </div>
                 </div>
 
+                <!-- Grilla de Resultados -->
                 <div class="lg:col-span-3 space-y-6">
-                    <div class="bg-white p-4 rounded-2xl border border-botanika-200 flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-                        <span class="text-sm text-botanika-700">Mostrando <strong>${products.length}</strong> productos</span>
-                        <div class="flex items-center space-x-2 text-sm">
+                    <div class="bg-white p-4 rounded-2xl border border-botanika-200 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-subtle">
+                        <span class="text-xs sm:text-sm text-botanika-700">
+                            Mostrando <strong>${filtered.length}</strong> de <strong>${products.length}</strong> productos
+                        </span>
+                        <div class="flex items-center space-x-2 text-xs sm:text-sm">
                             <span class="text-botanika-700">Ordenar por:</span>
-                            <select class="bg-botanika-50 border border-botanika-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-botanika-600">
-                                <option>Relevancia</option>
-                                <option>Precio: Menor a Mayor</option>
-                                <option>Precio: Mayor a Menor</option>
+                            <select onchange="setCatalogSort(this.value)" class="bg-botanika-50 border border-botanika-300 rounded-xl px-3 py-1.5 focus:outline-none focus:border-botanika-600 text-xs">
+                                <option value="default" ${catalogFilter.sortBy === 'default' ? 'selected' : ''}>Relevancia</option>
+                                <option value="price_asc" ${catalogFilter.sortBy === 'price_asc' ? 'selected' : ''}>Precio: Menor a Mayor</option>
+                                <option value="price_desc" ${catalogFilter.sortBy === 'price_desc' ? 'selected' : ''}>Precio: Mayor a Menor</option>
+                                <option value="name_asc" ${catalogFilter.sortBy === 'name_asc' ? 'selected' : ''}>Nombre (A - Z)</option>
+                                <option value="rating_desc" ${catalogFilter.sortBy === 'rating_desc' ? 'selected' : ''}>Mejor Calificados</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        ${products.map(p => renderProductCard(p)).join('')}
-                    </div>
+                    ${filtered.length === 0 ? `
+                        <div class="text-center py-20 bg-white rounded-3xl border border-botanika-200 space-y-3">
+                            <i data-lucide="search-x" class="w-12 h-12 mx-auto text-botanika-300"></i>
+                            <h3 class="font-serif text-xl font-medium text-botanika-800">No encontramos resultados</h3>
+                            <p class="text-botanika-700 text-xs sm:text-sm max-w-sm mx-auto">Probá ajustando los filtros de categoría, nivel de luz o el término de búsqueda.</p>
+                            <button onclick="resetCatalogFilters()" class="btn-primary text-xs py-2.5 px-6 mt-2">
+                                Restablecer Filtros
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            ${filtered.map(p => renderProductCard(p)).join('')}
+                        </div>
+                    `}
                 </div>
+
             </div>
         </div>
     `;
 }
+
+function handleCatalogSearch(e) {
+    catalogFilter.search = e.target.value;
+    renderView();
+}
+
+function setCatalogCategory(cat) {
+    catalogFilter.category = cat;
+    renderView();
+}
+
+function setCatalogLight(light) {
+    catalogFilter.light = light;
+    renderView();
+}
+
+function setCatalogMaxPrice(val) {
+    catalogFilter.maxPrice = Number(val);
+    renderView();
+}
+
+function setCatalogSort(val) {
+    catalogFilter.sortBy = val;
+    renderView();
+}
+
+function resetCatalogFilters() {
+    catalogFilter = {
+        search: '',
+        category: 'Todas',
+        light: 'Todas',
+        maxPrice: 60000,
+        sortBy: 'default'
+    };
+    renderView();
+    showToast('Filtros restablecidos');
+}
+
+// =============================================================================
+// FICHA DE DETALLE DE PRODUCTO
+// =============================================================================
 
 function renderProductDetail() {
     const product = products.find(p => p.id === currentProductId) || products[0];
@@ -1283,8 +2244,11 @@ function renderProductDetail() {
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
                 <div class="space-y-4">
-                    <div class="rounded-3xl overflow-hidden bg-white border border-botanika-200 h-[450px]">
+                    <div class="rounded-3xl overflow-hidden bg-white border border-botanika-200 h-[450px] shadow-card relative">
                         <img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover">
+                        <button onclick="toggleWishlist(${product.id})" class="btn-action-round absolute top-4 right-4 ${isInWishlist(product.id) ? 'active' : ''}">
+                            <i data-lucide="heart" class="w-4 h-4 ${isInWishlist(product.id) ? 'fill-botanika-terracota text-botanika-terracota' : ''}"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -1292,12 +2256,16 @@ function renderProductDetail() {
                     <div>
                         <span class="bg-botanika-200 text-botanika-800 text-xs uppercase font-semibold px-3 py-1 rounded-full">${product.badge || 'Stock Disponible'}</span>
                         <h1 class="font-serif text-4xl text-botanika-800 mt-3">${product.name}</h1>
-                        <p class="font-serif text-2xl text-botanika-terracota font-semibold mt-2">$${product.price.toLocaleString()}</p>
+                        <div class="flex items-center space-x-2 text-xs text-botanika-700 mt-2">
+                            <span class="text-amber-500 font-bold">★ ${product.rating}</span>
+                            <span>(${product.reviewsCount} reseñas verificadas de compradores)</span>
+                        </div>
+                        <p class="font-serif text-3xl text-botanika-terracota font-semibold mt-3">$${product.price.toLocaleString()}</p>
                     </div>
 
                     <p class="text-botanika-700 text-sm leading-relaxed">${product.description}</p>
 
-                    <div class="bg-white p-5 rounded-2xl border border-botanika-200 grid grid-cols-3 gap-4 text-center">
+                    <div class="bg-white p-5 rounded-3xl border border-botanika-200 grid grid-cols-3 gap-4 text-center shadow-subtle">
                         <div class="space-y-1">
                             <i data-lucide="sun" class="w-5 h-5 mx-auto text-botanika-terracota"></i>
                             <span class="text-[11px] uppercase tracking-wider text-botanika-700 block font-bold">Luz</span>
@@ -1315,12 +2283,12 @@ function renderProductDetail() {
                         </div>
                     </div>
 
-                    <div class="flex space-x-4 pt-4">
-                        <button onclick="handleDirectBuy(${product.id})" class="flex-grow bg-botanika-600 hover:bg-botanika-700 text-white font-medium py-4 rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+                    <div class="flex space-x-3 pt-4">
+                        <button onclick="handleDirectBuy(${product.id})" class="flex-grow btn-primary py-4 text-sm font-semibold flex items-center justify-center space-x-2">
                             <i data-lucide="shopping-bag" class="w-5 h-5"></i>
                             <span>Comprar Ahora $${product.price.toLocaleString()}</span>
                         </button>
-                        <button onclick="addToCart(${product.id})" class="p-4 border border-botanika-300 rounded-xl hover:bg-botanika-100 transition" title="Agregar al carrito">
+                        <button onclick="addToCart(${product.id})" class="btn-secondary p-4 rounded-2xl" title="Agregar al carrito">
                             <i data-lucide="plus" class="w-5 h-5 text-botanika-800"></i>
                         </button>
                     </div>
@@ -1330,38 +2298,43 @@ function renderProductDetail() {
     `;
 }
 
+// =============================================================================
+// VISTA DE CARRITO COMPLETO
+// =============================================================================
+
 function renderCart() {
     const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
     const discount = discountApplied ? subtotal * 0.1 : 0;
-    const total = subtotal - discount;
+    const shippingCost = subtotal >= 60000 ? 0 : 3500;
+    const total = subtotal - discount + shippingCost;
 
     return `
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             <h1 class="font-serif text-3xl font-medium mb-8">Tu Carrito de Compras</h1>
 
             ${cart.length === 0 ? `
-                <div class="text-center py-20 bg-white rounded-3xl border border-botanika-200">
-                    <i data-lucide="shopping-bag" class="w-12 h-12 mx-auto text-botanika-300 mb-4"></i>
-                    <h3 class="font-serif text-xl font-medium">Tu carrito está vacío</h3>
-                    <p class="text-botanika-700 text-sm mt-1 mb-6">Aún no has agregado plantas ni accesorios.</p>
-                    <button onclick="navigateTo('catalog')" class="bg-botanika-600 text-white px-6 py-3 rounded-xl font-medium text-sm">Ir al Catálogo</button>
+                <div class="text-center py-20 bg-white rounded-3xl border border-botanika-200 space-y-4 shadow-subtle">
+                    <i data-lucide="shopping-bag" class="w-12 h-12 mx-auto text-botanika-300"></i>
+                    <h3 class="font-serif text-xl font-medium text-botanika-800">Tu carrito está vacío</h3>
+                    <p class="text-botanika-700 text-sm max-w-sm mx-auto">Aún no has agregado plantas ni accesorios a tu orden.</p>
+                    <button onclick="navigateTo('catalog')" class="btn-primary text-xs py-3 px-6">Ir al Catálogo</button>
                 </div>
             ` : `
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-2 space-y-4">
                         ${cart.map((item, idx) => `
-                            <div class="bg-white p-4 sm:p-6 rounded-2xl border border-botanika-200 flex items-center justify-between space-x-4">
-                                <img src="${item.image}" alt="${item.name}" class="w-20 h-20 rounded-xl object-cover bg-botanika-50 flex-shrink-0">
+                            <div class="bg-white p-4 sm:p-6 rounded-3xl border border-botanika-200 flex items-center justify-between space-x-4 shadow-subtle">
+                                <img src="${item.image}" alt="${item.name}" class="w-20 h-20 rounded-2xl object-cover bg-botanika-50 flex-shrink-0">
                                 <div class="flex-grow">
                                     <h3 class="font-medium text-botanika-800">${item.name}</h3>
                                     <p class="text-xs text-botanika-700 mt-0.5">Maceta: ${item.pot}</p>
                                     <p class="font-serif font-semibold text-botanika-800 mt-1">$${item.price.toLocaleString()}</p>
                                 </div>
                                 <div class="flex items-center space-x-3">
-                                    <div class="flex items-center border border-botanika-300 rounded-lg">
-                                        <button onclick="updateQty(${idx}, -1)" class="px-2.5 py-1 text-botanika-700 hover:bg-botanika-100">-</button>
+                                    <div class="flex items-center border border-botanika-300 rounded-xl bg-white shadow-2xs">
+                                        <button onclick="updateQty(${idx}, -1)" class="px-3 py-1 text-botanika-700 hover:bg-botanika-100 rounded-l">-</button>
                                         <span class="px-3 text-sm font-medium">${item.qty}</span>
-                                        <button onclick="updateQty(${idx}, 1)" class="px-2.5 py-1 text-botanika-700 hover:bg-botanika-100">+</button>
+                                        <button onclick="updateQty(${idx}, 1)" class="px-3 py-1 text-botanika-700 hover:bg-botanika-100 rounded-r">+</button>
                                     </div>
                                     <button onclick="removeItem(${idx})" class="p-2 text-botanika-700 hover:text-botanika-terracota transition">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -1371,12 +2344,12 @@ function renderCart() {
                         `).join('')}
                     </div>
 
-                    <div class="bg-white p-6 rounded-2xl border border-botanika-200 h-fit space-y-6">
+                    <div class="bg-white p-6 rounded-3xl border border-botanika-200 h-fit space-y-6 shadow-subtle">
                         <h3 class="font-serif text-xl font-medium border-b border-botanika-200 pb-4">Resumen del Pedido</h3>
                         
                         <div class="flex space-x-2">
-                            <input type="text" id="discount-input" placeholder="Cupón: BOTANIKA10" class="bg-botanika-50 border border-botanika-300 rounded-xl px-4 py-2.5 text-sm flex-grow focus:outline-none focus:border-botanika-600">
-                            <button onclick="applyDiscount()" class="bg-botanika-800 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-botanika-700 transition">Aplicar</button>
+                            <input type="text" id="discount-input" placeholder="Cupón: BOTANIKA10" class="bg-botanika-50 border border-botanika-300 rounded-xl px-4 py-2.5 text-xs sm:text-sm flex-grow focus:outline-none focus:border-botanika-600">
+                            <button onclick="applyDiscount()" class="btn-primary text-xs py-2.5 px-4">Aplicar</button>
                         </div>
 
                         <div class="space-y-3 text-sm pt-2">
@@ -1392,15 +2365,15 @@ function renderCart() {
                             ` : ''}
                             <div class="flex justify-between text-botanika-700">
                                 <span>Envío estimado</span>
-                                <span>$3,500</span>
+                                <span>${shippingCost === 0 ? '<strong class="text-emerald-700">Gratis (Superó $60.000)</strong>' : '$3,500'}</span>
                             </div>
-                            <div class="flex justify-between font-serif font-semibold text-lg text-botanika-800 pt-3 border-t border-botanika-200">
+                            <div class="flex justify-between font-serif font-semibold text-xl text-botanika-800 pt-3 border-t border-botanika-200">
                                 <span>Total</span>
-                                <span>$${(total + 3500).toLocaleString()}</span>
+                                <span>$${total.toLocaleString()}</span>
                             </div>
                         </div>
 
-                        <button onclick="navigateTo('checkout')" class="w-full bg-botanika-600 hover:bg-botanika-700 text-white rounded-xl py-3.5 text-sm font-semibold transition text-center block shadow-sm">
+                        <button onclick="navigateTo('checkout')" class="btn-primary w-full py-4 text-sm font-semibold">
                             Continuar a Finalizar Compra
                         </button>
                     </div>
@@ -1431,7 +2404,7 @@ function applyDiscount() {
         showToast('¡Descuento del 10% aplicado!');
         renderView();
     } else {
-        showToast('Código inválido (usa BOTANIKA10)');
+        showToast('Código inválido (usa BOTANIKA10)', 'error');
     }
 }
 
@@ -1444,6 +2417,10 @@ function setShippingMethod(method) {
     selectedShippingMethod = method;
     renderView();
 }
+
+// =============================================================================
+// CHECKOUT & MERCADO PAGO INTEGRATION
+// =============================================================================
 
 function renderCheckout() {
     const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
@@ -1476,8 +2453,8 @@ function renderCheckout() {
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2 space-y-8">
                     <!-- Datos de Envío -->
-                    <div class="bg-white p-6 sm:p-8 rounded-2xl border border-botanika-200 space-y-4">
-                        <h3 class="font-serif text-xl font-medium flex items-center"><i data-lucide="map-pin" class="w-5 h-5 mr-2 text-botanika-600"></i> Datos de Entrega</h3>
+                    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-botanika-200 space-y-4 shadow-subtle">
+                        <h3 class="font-serif text-xl font-medium flex items-center text-botanika-800"><i data-lucide="map-pin" class="w-5 h-5 mr-2 text-botanika-600"></i> Datos de Entrega</h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                             <div>
                                 <label class="text-xs font-bold uppercase tracking-wider text-botanika-700 block mb-1">Nombre</label>
@@ -1507,24 +2484,24 @@ function renderCheckout() {
                     </div>
 
                     <!-- Método de Envío -->
-                    <div class="bg-white p-6 sm:p-8 rounded-2xl border border-botanika-200 space-y-4">
-                        <h3 class="font-serif text-xl font-medium flex items-center"><i data-lucide="truck" class="w-5 h-5 mr-2 text-botanika-600"></i> Método de Envío</h3>
+                    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-botanika-200 space-y-4 shadow-subtle">
+                        <h3 class="font-serif text-xl font-medium flex items-center text-botanika-800"><i data-lucide="truck" class="w-5 h-5 mr-2 text-botanika-600"></i> Método de Envío</h3>
                         <div class="space-y-3 pt-2">
-                            <label onclick="setShippingMethod('express')" class="flex items-center justify-between p-4 rounded-xl border-2 ${selectedShippingMethod === 'express' ? 'border-botanika-600 bg-botanika-50' : 'border-botanika-300 bg-white hover:border-botanika-600'} cursor-pointer transition">
+                            <label onclick="setShippingMethod('express')" class="flex items-center justify-between p-4 rounded-2xl border-2 ${selectedShippingMethod === 'express' ? 'border-botanika-600 bg-botanika-50' : 'border-botanika-300 bg-white hover:border-botanika-600'} cursor-pointer transition">
                                 <div class="flex items-center space-x-3">
                                     <input type="radio" name="shipping" ${selectedShippingMethod === 'express' ? 'checked' : ''} class="text-botanika-600">
                                     <div>
-                                        <p class="font-medium text-sm">Envío Protegido Especial Botanika (Climatizado)</p>
+                                        <p class="font-medium text-sm text-botanika-800">Envío Protegido Especial Botanika (Climatizado)</p>
                                         <p class="text-xs text-botanika-700">Entrega en 48hs hábiles con empaque antiestrés</p>
                                     </div>
                                 </div>
                                 <span class="font-serif font-semibold">$3,500</span>
                             </label>
-                            <label onclick="setShippingMethod('free')" class="flex items-center justify-between p-4 rounded-xl border-2 ${selectedShippingMethod === 'free' ? 'border-botanika-600 bg-botanika-50' : 'border-botanika-300 bg-white hover:border-botanika-600'} cursor-pointer transition">
+                            <label onclick="setShippingMethod('free')" class="flex items-center justify-between p-4 rounded-2xl border-2 ${selectedShippingMethod === 'free' ? 'border-botanika-600 bg-botanika-50' : 'border-botanika-300 bg-white hover:border-botanika-600'} cursor-pointer transition">
                                 <div class="flex items-center space-x-3">
                                     <input type="radio" name="shipping" ${selectedShippingMethod === 'free' ? 'checked' : ''} class="text-botanika-600">
                                     <div>
-                                        <p class="font-medium text-sm">Retiro por Studio Palermo</p>
+                                        <p class="font-medium text-sm text-botanika-800">Retiro por Studio Palermo</p>
                                         <p class="text-xs text-botanika-700">Listo en 24hs hábiles en showroom</p>
                                     </div>
                                 </div>
@@ -1534,8 +2511,8 @@ function renderCheckout() {
                     </div>
 
                     <!-- Medio de Pago -->
-                    <div class="bg-white p-6 sm:p-8 rounded-2xl border border-botanika-200 space-y-4">
-                        <h3 class="font-serif text-xl font-medium flex items-center"><i data-lucide="credit-card" class="w-5 h-5 mr-2 text-botanika-600"></i> Medio de Pago</h3>
+                    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-botanika-200 space-y-4 shadow-subtle">
+                        <h3 class="font-serif text-xl font-medium flex items-center text-botanika-800"><i data-lucide="credit-card" class="w-5 h-5 mr-2 text-botanika-600"></i> Medio de Pago</h3>
                         
                         <div class="bg-[#F5F9FD] border border-[#D0E6F9] rounded-2xl p-5 space-y-3">
                             <div class="flex items-center space-x-3">
@@ -1549,166 +2526,160 @@ function renderCheckout() {
                     </div>
                 </div>
 
-                <!-- Resumen y Confirmación -->
-                <div class="bg-white p-6 rounded-2xl border border-botanika-200 h-fit space-y-6">
-                    <h3 class="font-serif text-xl font-medium border-b border-botanika-200 pb-4">Resumen de Compra</h3>
-                    <div class="space-y-3 text-sm">
+                <!-- Resumen Lateral -->
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-botanika-200 h-fit space-y-6 shadow-subtle">
+                    <h3 class="font-serif text-xl font-medium border-b border-botanika-200 pb-4 text-botanika-800">Resumen de Compra</h3>
+
+                    <div class="space-y-3 max-h-60 overflow-y-auto pr-1">
+                        ${cart.map(item => `
+                            <div class="flex justify-between items-center text-xs">
+                                <div class="flex items-center space-x-2 truncate">
+                                    <span class="font-semibold text-botanika-800">${item.qty}x</span>
+                                    <span class="text-botanika-700 truncate">${item.name}</span>
+                                </div>
+                                <span class="font-serif font-semibold text-botanika-800 ml-2">$${(item.price * item.qty).toLocaleString()}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="space-y-2.5 text-sm pt-4 border-t border-botanika-200">
                         <div class="flex justify-between text-botanika-700">
-                            <span>Subtotal (${cart.reduce((a, b) => a + b.qty, 0)} ítems)</span>
+                            <span>Subtotal</span>
                             <span>$${subtotal.toLocaleString()}</span>
                         </div>
                         ${discountApplied ? `
                             <div class="flex justify-between text-botanika-terracota">
-                                <span>Descuento aplicado (10%)</span>
+                                <span>Descuento (10%)</span>
                                 <span>-$${discount.toLocaleString()}</span>
                             </div>
                         ` : ''}
                         <div class="flex justify-between text-botanika-700">
-                            <span>${selectedShippingMethod === 'free' ? 'Retiro en Studio' : 'Envío Protegido'}</span>
-                            <span>${shippingCost === 0 ? 'Gratis' : '$' + shippingCost.toLocaleString()}</span>
+                            <span>Logística</span>
+                            <span>${shippingCost === 0 ? 'Gratis' : `$${shippingCost.toLocaleString()}`}</span>
                         </div>
-                        <div class="flex justify-between font-serif font-semibold text-lg text-botanika-800 pt-3 border-t border-botanika-200">
-                            <span>Total a Pagar</span>
+                        <div class="flex justify-between font-serif font-semibold text-2xl text-botanika-800 pt-3 border-t border-botanika-200">
+                            <span>Total a pagar</span>
                             <span>$${total.toLocaleString()}</span>
                         </div>
                     </div>
 
-                    <button id="checkout-submit-btn" onclick="handleMercadoPagoPayment()" class="w-full bg-[#009EE3] hover:bg-[#0082ba] text-white rounded-xl py-4 text-sm font-semibold transition text-center shadow-md flex items-center justify-center space-x-2">
-                        <i data-lucide="wallet" class="w-5 h-5"></i>
+                    <button id="checkout-submit-btn" onclick="handleMercadoPagoPayment()" class="btn-primary w-full py-4 text-sm font-semibold flex items-center justify-center space-x-2">
+                        <i data-lucide="lock" class="w-4 h-4"></i>
                         <span>Pagar con Mercado Pago $${total.toLocaleString()}</span>
                     </button>
-                    
-                    <p class="text-[11px] text-center text-botanika-700">
-                        🔒 Transacción segura conectada a Supabase Postgres & Checkout Pro.
-                    </p>
+
+                    <div class="text-[11px] text-center text-botanika-700 space-y-1">
+                        <p class="flex items-center justify-center space-x-1">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-botanika-600"></i>
+                            <span>Conexión cifrada SSL 256 bits</span>
+                        </p>
+                        <p>Orden sincronizada con Supabase Cloud</p>
+                    </div>
                 </div>
             </div>
         </div>
     `;
 }
+
+// =============================================================================
+// VISTA DE ÉXITO TRAS PAGO EN MERCADO PAGO
+// =============================================================================
 
 function renderSuccess() {
-    const paymentVoucher = lastPaymentId ? `#MP-${lastPaymentId}` : '#MP-TEST-98201';
-    const orderVoucher = lastOrderId ? `#ORD-${lastOrderId.substring(0, 8)}` : '#BOT-84920';
-
     return `
-        <div class="max-w-3xl mx-auto px-4 py-20 text-center space-y-6">
-            <div class="w-20 h-20 bg-botanika-600 text-white rounded-full flex items-center justify-center mx-auto shadow-xl">
-                <i data-lucide="check" class="w-10 h-10"></i>
+        <div class="max-w-2xl mx-auto px-4 py-16 text-center space-y-6">
+            <div class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center shadow-subtle">
+                <i data-lucide="check-circle" class="w-10 h-10"></i>
             </div>
-            <span class="text-botanika-terracota font-semibold text-xs tracking-widest uppercase">¡Compra exitosa!</span>
-            <h1 class="font-serif text-4xl text-botanika-800">Gracias por tu pedido en Botanika</h1>
-            
-            <p class="text-botanika-700 text-sm max-w-lg mx-auto leading-relaxed">
-                Hemos recibido y acreditado tu pago correctamente a través de Mercado Pago. La orden ha sido registrada en tu cuenta de Supabase.
-            </p>
 
-            <!-- Card de comprobantes -->
-            <div class="bg-white p-6 rounded-2xl border border-botanika-200 max-w-md mx-auto text-left space-y-3 text-sm shadow-sm">
-                <div class="flex justify-between pb-2 border-b border-botanika-100">
+            <div class="space-y-2">
+                <span class="text-xs font-semibold text-emerald-700 uppercase tracking-widest">¡Pago Aprobado con Éxito!</span>
+                <h1 class="font-serif text-3xl sm:text-4xl font-medium text-botanika-800">Gracias por tu compra en Botanika</h1>
+                <p class="text-botanika-700 text-sm max-w-md mx-auto">
+                    Tu orden ya está siendo preparada en nuestro vivero. Te enviamos la confirmación y guía de entrega a tu correo.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl border border-botanika-200 shadow-subtle text-left space-y-3 text-xs sm:text-sm">
+                <div class="flex justify-between py-1 border-b border-botanika-100">
                     <span class="text-botanika-700">Comprobante Mercado Pago:</span>
-                    <strong class="text-botanika-800">${paymentVoucher}</strong>
+                    <strong class="text-botanika-800 font-mono">${lastPaymentId || 'MP-' + Math.random().toString(36).substring(2, 9).toUpperCase()}</strong>
                 </div>
-                <div class="flex justify-between pb-2 border-b border-botanika-100">
-                    <span class="text-botanika-700">Identificador de Orden (Supabase):</span>
-                    <strong class="text-botanika-600">${orderVoucher}</strong>
+                <div class="flex justify-between py-1 border-b border-botanika-100">
+                    <span class="text-botanika-700">Identificador Supabase:</span>
+                    <strong class="text-botanika-800 font-mono">${lastOrderId || 'En proceso'}</strong>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-botanika-700">Estado de acreditación:</span>
-                    <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold">Aprobado</span>
+                <div class="flex justify-between py-1 border-b border-botanika-100">
+                    <span class="text-botanika-700">Tiempo de entrega:</span>
+                    <strong class="text-botanika-600">48hs hábiles (Climatizado)</strong>
+                </div>
+                <div class="flex justify-between py-1">
+                    <span class="text-botanika-700">Garantía:</span>
+                    <span class="text-botanika-800">30 días de reposición botánica</span>
                 </div>
             </div>
 
-            <div class="pt-4 flex justify-center space-x-4">
-                <button onclick="navigateTo('profile')" class="bg-white border border-botanika-600 text-botanika-800 px-6 py-3.5 rounded-xl font-medium text-sm transition shadow-sm hover:bg-botanika-100">
-                    Ver mis pedidos en Perfil
+            <div class="flex flex-col sm:flex-row justify-center gap-3 pt-4">
+                <button onclick="navigateTo('profile')" class="btn-secondary py-3.5 px-6 text-sm">
+                    Ver en Mi Cuenta
                 </button>
-                <button onclick="navigateTo('home')" class="bg-botanika-600 hover:bg-botanika-700 text-white px-6 py-3.5 rounded-xl font-medium text-sm transition shadow-sm">
-                    Seguir Comprando
+                <button onclick="navigateTo('home')" class="btn-primary py-3.5 px-6 text-sm">
+                    Volver a la Tienda
                 </button>
             </div>
         </div>
     `;
 }
 
+// =============================================================================
+// VISTA DE PERFIL DE USUARIO Y HISTORIAL DE ÓRDENES EN SUPABASE
+// =============================================================================
+
 function renderProfile() {
-    if (!currentUser) {
-        return `
-            <div class="max-w-xl mx-auto px-4 py-20 text-center space-y-6">
-                <div class="w-16 h-16 bg-botanika-200 text-botanika-700 rounded-full flex items-center justify-center mx-auto">
-                    <i data-lucide="lock" class="w-8 h-8"></i>
+    const userEmail = currentUser?.email || 'Sin sesión';
+    const userName = currentUser?.user_metadata?.full_name || userEmail.split('@')[0];
+
+    return `
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-botanika-200 shadow-subtle flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 rounded-full bg-botanika-600 text-white font-serif font-bold text-2xl flex items-center justify-center shadow-sm">
+                        ${userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <h1 class="font-serif text-2xl font-medium text-botanika-800">${userName}</h1>
+                        <p class="text-xs text-botanika-700">${userEmail}</p>
+                        <span class="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-semibold border border-emerald-200">
+                            Cliente Supabase Auth
+                        </span>
+                    </div>
                 </div>
-                <h1 class="font-serif text-3xl font-medium">Mi Cuenta & Órdenes</h1>
-                <p class="text-botanika-700 text-sm leading-relaxed">
-                    Inicia sesión o regístrate para acceder al historial de compras registradas en Supabase, direcciones de entrega y lista de deseos.
-                </p>
-                <div class="pt-2">
-                    <button onclick="openAuthModal('login')" class="bg-botanika-600 hover:bg-botanika-700 text-white px-8 py-3.5 rounded-xl font-semibold text-sm transition shadow-sm">
-                        Iniciar Sesión con Supabase
+
+                <div class="flex space-x-3">
+                    <button onclick="handleSignOut()" class="btn-secondary text-xs py-2.5 px-4">
+                        Cerrar Sesión
                     </button>
                 </div>
             </div>
-        `;
-    }
 
-    const userName = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-
-    return `
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <div class="mb-8 flex flex-col sm:flex-row justify-between sm:items-center space-y-3 sm:space-y-0">
-                <div>
-                    <h1 class="font-serif text-3xl font-medium">Mi Cuenta</h1>
-                    <p class="text-botanika-700 text-sm mt-1">Sesión activa como <strong>${userName}</strong> (${currentUser.email})</p>
-                </div>
-                <button onclick="handleSignOut()" class="text-xs text-botanika-terracota underline font-medium w-fit">Cerrar Sesión</button>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 space-y-6">
-                    <!-- Contenedor dinámico de órdenes en Supabase -->
-                    <div class="bg-white p-6 rounded-2xl border border-botanika-200 space-y-4">
-                        <div class="flex justify-between items-center">
-                            <h3 class="font-serif text-xl font-medium flex items-center">
-                                <i data-lucide="package" class="w-5 h-5 mr-2 text-botanika-600"></i> Historial de Órdenes en Supabase
-                            </h3>
-                            <button onclick="loadUserOrdersAsync()" class="text-xs text-botanika-600 font-semibold underline flex items-center space-x-1">
-                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                                <span>Actualizar</span>
-                            </button>
-                        </div>
-
-                        <div id="user-orders-list" class="space-y-3 pt-2">
-                            <div class="text-center py-6 text-sm text-botanika-700">
-                                <p>Cargando tus órdenes desde la base de datos...</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl border border-botanika-200 space-y-4">
-                        <h3 class="font-serif text-xl font-medium flex items-center"><i data-lucide="map-pin" class="w-5 h-5 mr-2 text-botanika-600"></i> Direcciones Guardadas</h3>
-                        <div class="border border-botanika-200 rounded-xl p-4 flex justify-between items-center">
-                            <div>
-                                <p class="font-medium text-sm">Dirección Principal</p>
-                                <p class="text-xs text-botanika-700 mt-0.5">Av. Libertador 1450, Piso 4B, Buenos Aires</p>
-                            </div>
-                            <button onclick="showToast('Dirección editada')" class="text-xs text-botanika-600 font-medium underline">Editar</button>
-                        </div>
-                    </div>
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border border-botanika-200 shadow-subtle space-y-6">
+                <div class="flex justify-between items-center border-b border-botanika-200 pb-4">
+                    <h2 class="font-serif text-xl font-medium text-botanika-800 flex items-center">
+                        <i data-lucide="package" class="w-5 h-5 mr-2 text-botanika-600"></i>
+                        Mis Órdenes en Supabase
+                    </h2>
+                    <button onclick="loadUserOrdersAsync()" class="text-xs text-botanika-600 hover:text-botanika-800 underline font-medium">
+                        Actualizar
+                    </button>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl border border-botanika-200 space-y-4 h-fit">
-                    <h3 class="font-serif text-xl font-medium flex items-center"><i data-lucide="heart" class="w-5 h-5 mr-2 text-botanika-terracota"></i> Mis Favoritos</h3>
-                    <div class="space-y-3 pt-2">
-                        <div class="flex items-center space-x-3 border-b border-botanika-100 pb-3">
-                            <img src="${products[0].image}" class="w-14 h-14 rounded-lg object-cover">
-                            <div class="flex-grow">
-                                <p class="font-medium text-sm">${products[0].name}</p>
-                                <p class="text-xs font-semibold text-botanika-terracota">$${products[0].price.toLocaleString()}</p>
-                            </div>
-                            <button onclick="handleDirectBuy(${products[0].id})" class="p-2 bg-botanika-600 text-white rounded-lg hover:bg-botanika-700 transition" title="Comprar">
-                                <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
-                            </button>
-                        </div>
+                <div id="user-orders-container" class="space-y-4">
+                    <div class="text-center py-8">
+                        <svg class="animate-spin h-6 w-6 text-botanika-600 mx-auto mb-2" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        <p class="text-xs text-botanika-700">Cargando órdenes desde Supabase...</p>
                     </div>
                 </div>
             </div>
@@ -1716,75 +2687,82 @@ function renderProfile() {
     `;
 }
 
-/**
- * Consulta asíncrona de órdenes de compra del usuario autenticado en Supabase.
- */
 async function loadUserOrdersAsync() {
-    const container = document.getElementById('user-orders-list');
-    if (!container || !currentUser) return;
+    const container = document.getElementById('user-orders-container');
+    if (!container) return;
 
     try {
-        const orders = await window.botanikaSupabase.getUserOrders(currentUser.id);
-        
+        const orders = await window.botanikaSupabase.getUserOrders();
         if (!orders || orders.length === 0) {
             container.innerHTML = `
-                <div class="text-center py-8 text-botanika-700 space-y-2">
-                    <i data-lucide="inbox" class="w-8 h-8 mx-auto text-botanika-300"></i>
-                    <p class="text-sm">Aún no registras órdenes de compra en esta cuenta.</p>
-                    <button onclick="goToLandingSection('productos')" class="text-xs text-botanika-600 font-semibold underline">Ver productos destacados</button>
+                <div class="text-center py-8 text-botanika-700 text-xs">
+                    <p>Aún no registras compras con tu cuenta.</p>
+                    <button onclick="navigateTo('catalog')" class="btn-primary text-xs py-2 px-4 mt-3">Ir a Comprar</button>
                 </div>
             `;
-            if (typeof lucide !== 'undefined') lucide.createIcons();
             return;
         }
 
         container.innerHTML = orders.map(ord => {
-            const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Reciente';
-            const statusClass = 
-                ord.status === 'aprobado' ? 'bg-emerald-100 text-emerald-800' :
-                ord.status === 'rechazado' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-900';
-            const statusLabel = 
-                ord.status === 'aprobado' ? 'Aprobado' :
-                ord.status === 'rechazado' ? 'Rechazado' : 'Pendiente';
-            
-            const itemsCount = Array.isArray(ord.items) ? ord.items.reduce((acc, i) => acc + (i.qty || 1), 0) : 1;
+            const isApproved = ord.status === 'aprobado';
+            const statusClass = isApproved 
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+                : ord.status === 'pendiente' 
+                ? 'bg-amber-50 text-amber-800 border-amber-200' 
+                : 'bg-red-50 text-red-800 border-red-200';
+
+            const itemsCount = Array.isArray(ord.items) ? ord.items.reduce((acc, it) => acc + (it.qty || 1), 0) : 1;
+            const dateStr = ord.created_at ? new Date(ord.created_at).toLocaleDateString() : 'Reciente';
 
             return `
-                <div class="border border-botanika-200 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+                <div class="p-4 rounded-2xl bg-botanika-50 border border-botanika-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
                         <div class="flex items-center space-x-2">
-                            <p class="font-medium text-sm text-botanika-800">Orden #${ord.id.toString().substring(0, 8)}</p>
-                            <span class="text-xs ${statusClass} font-semibold px-2.5 py-0.5 rounded-full">${statusLabel}</span>
+                            <span class="font-mono text-xs font-bold text-botanika-800">Orden #${String(ord.id).substring(0, 8)}...</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${statusClass}">
+                                ${ord.status}
+                            </span>
                         </div>
-                        <p class="text-xs text-botanika-700 mt-1">${itemsCount} producto(s) • ${dateStr} • Total: <strong>$${Number(ord.total_amount).toLocaleString()}</strong></p>
-                        ${ord.payment_id ? `<p class="text-[11px] text-gray-500 mt-0.5">Comprobante MP: #${ord.payment_id}</p>` : ''}
+                        <p class="text-xs text-botanika-700 mt-1">${itemsCount} ítem(s) • Fecha: ${dateStr}</p>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="showToast('Detalle de orden abierta')" class="text-xs text-botanika-600 font-medium underline">Ver detalle</button>
+                    <div class="flex items-center space-x-4">
+                        <span class="font-serif font-bold text-base text-botanika-800">$${Number(ord.total_amount).toLocaleString()}</span>
                     </div>
                 </div>
             `;
         }).join('');
-
-        if (typeof lucide !== 'undefined') lucide.createIcons();
     } catch (err) {
-        console.error('Error cargando órdenes:', err);
+        console.error('Error al cargar órdenes de Supabase:', err);
         container.innerHTML = `<p class="text-xs text-red-600 py-3">No se pudieron cargar las órdenes de Supabase: ${err.message}</p>`;
     }
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 // =============================================================================
 // INICIALIZACIÓN DE LA APLICACIÓN
 // =============================================================================
 
-// Listener para cerrar modal de Auth con tecla ESC o clic en backdrop
+// Listener para cerrar modales con tecla ESC o clic en backdrop
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeAuthModal();
+    if (e.key === 'Escape') {
+        closeAuthModal();
+        closeCartDrawer();
+        closeWishlistDrawer();
+        closeQuickView();
+        closeQuizModal();
+    }
 });
 
 document.addEventListener('click', (e) => {
-    const modal = document.getElementById('auth-modal');
-    if (e.target === modal) closeAuthModal();
+    const authModal = document.getElementById('auth-modal');
+    if (e.target === authModal) closeAuthModal();
+
+    const quickModal = document.getElementById('quick-view-modal');
+    if (e.target === quickModal) closeQuickView();
+
+    const quizModal = document.getElementById('quiz-modal');
+    if (e.target === quizModal) closeQuizModal();
 });
 
 // Listener de cambios de autenticación en Supabase
