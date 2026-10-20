@@ -129,7 +129,7 @@ let cart = [
     { id: 3, name: "Maceta Minimal Terracota 20cm", price: 12500, qty: 1, image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=200", pot: "Estándar" }
 ];
 
-/** @type {'home'|'catalog'|'product'|'cart'|'checkout'|'profile'|'success'|'styleguide'} Vista activa en la SPA */
+/** @type {'home'|'catalog'|'product'|'cart'|'checkout'|'profile'|'success'} Vista activa en la SPA */
 let currentView = 'home';
 
 /** @type {number} ID del producto a renderizar en la vista de detalle */
@@ -822,9 +822,6 @@ function renderView() {
             break;
         case 'success':
             main.innerHTML = renderSuccess();
-            break;
-        case 'styleguide':
-            main.innerHTML = renderStyleGuide();
             break;
         default:
             main.innerHTML = renderHome();
@@ -1774,51 +1771,6 @@ async function loadUserOrdersAsync() {
         console.error('Error cargando órdenes:', err);
         container.innerHTML = `<p class="text-xs text-red-600 py-3">No se pudieron cargar las órdenes de Supabase: ${err.message}</p>`;
     }
-}
-
-function renderStyleGuide() {
-    return `
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
-            <div class="border-b border-botanika-200 pb-6">
-                <span class="text-botanika-terracota font-semibold text-xs tracking-widest uppercase">Sistema de Diseño UI/UX</span>
-                <h1 class="font-serif text-4xl font-medium mt-1">Guía de Estilos & Componentes Botanika</h1>
-                <p class="text-botanika-700 text-sm mt-2 max-w-2xl">
-                    Especificaciones oficiales de diseño minimalista, cálido, enfocado en dispositivos móviles y con paleta inspirada en la naturaleza botánica.
-                </p>
-            </div>
-
-            <div class="space-y-4">
-                <h2 class="font-serif text-2xl font-medium">Paleta de Colores</h2>
-                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-                    <div class="p-4 rounded-2xl bg-botanika-50 border border-botanika-200 shadow-sm">
-                        <div class="h-16 rounded-xl bg-botanika-50 border border-botanika-300 mb-2"></div>
-                        <p class="font-medium text-sm">Fondo Principal</p>
-                        <p class="text-xs text-botanika-700">#F7F6F2</p>
-                    </div>
-                    <div class="p-4 rounded-2xl bg-white border border-botanika-200 shadow-sm">
-                        <div class="h-16 rounded-xl bg-botanika-200 mb-2"></div>
-                        <p class="font-medium text-sm">Arena Suave</p>
-                        <p class="text-xs text-botanika-700">#DED8CC</p>
-                    </div>
-                    <div class="p-4 rounded-2xl bg-white border border-botanika-200 shadow-sm">
-                        <div class="h-16 rounded-xl bg-botanika-600 mb-2"></div>
-                        <p class="font-medium text-sm">Verde Botánica</p>
-                        <p class="text-xs text-botanika-700">#526E5D</p>
-                    </div>
-                    <div class="p-4 rounded-2xl bg-white border border-botanika-200 shadow-sm">
-                        <div class="h-16 rounded-xl bg-botanika-800 mb-2"></div>
-                        <p class="font-medium text-sm">Verde Oscuro</p>
-                        <p class="text-xs text-botanika-700">#2A3830</p>
-                    </div>
-                    <div class="p-4 rounded-2xl bg-white border border-botanika-200 shadow-sm">
-                        <div class="h-16 rounded-xl bg-botanika-terracota mb-2"></div>
-                        <p class="font-medium text-sm">Terracota</p>
-                        <p class="text-xs text-botanika-700">#D07A58</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
 }
 
 // =============================================================================
