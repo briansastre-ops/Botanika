@@ -1,30 +1,906 @@
 /**
- * Botanika & Co. — Estilos Globales Complementarios
- * Tipografía, desplazamiento suave y personalización de barra de scroll.
+ * =============================================================================
+ * BOTANIKA STUDIO & PLANTAS — SISTEMA DE DISEÑO OFICIAL (UI/UX DESIGN SYSTEM)
+ * =============================================================================
+ * Paleta biofílica, tipografía editorial fluida, elevaciones suaves,
+ * glassmorphism sutil, animaciones de micro-interacción y accesibilidad WCAG AA.
+ * Cero dependencias externas 3D.
+ * =============================================================================
  */
 
-/* Import Inter font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap');
 
-/* Smooth scrolling behavior */
-html {
-    scroll-behavior: smooth;
+:root {
+    /* -------------------------------------------------------------------------
+       1. TOKENS DE COLOR (Paleta Curada de Tendencia)
+       ------------------------------------------------------------------------- */
+    /* Salvia / Verde Botánico (Principal) */
+    --color-salvia-50: #F4F7F4;
+    --color-salvia-100: #E4ECE4;
+    --color-salvia-200: #C7D8C7;
+    --color-salvia-300: #9EBA9F;
+    --color-salvia-400: #749A76;
+    --color-salvia-500: #526E5D; /* Principal marca */
+    --color-salvia-600: #3E5447;
+    --color-salvia-700: #2E3E34;
+    --color-salvia-800: #1F2A23;
+    --color-salvia-900: #131A16;
+
+    /* Terracota Artesanal (Acento Cálido) */
+    --color-terracota-50: #FDF7F4;
+    --color-terracota-100: #F8ECE6;
+    --color-terracota-200: #F1D7CA;
+    --color-terracota-300: #E4B5A0;
+    --color-terracota-400: #D89476;
+    --color-terracota-500: #D07A58; /* Principal acento */
+    --color-terracota-600: #B85F3D;
+    --color-terracota-700: #974B2F;
+    --color-terracota-800: #763A25;
+
+    /* Crema, Arena & Superficies Neutras */
+    --color-cream-50: #FAF8F5;
+    --color-cream-100: #F3EFE8;
+    --color-cream-200: #E6DFD4;
+    --color-cream-300: #D7CCBE;
+    --color-sand: #DFD5C6;
+    --color-charcoal: #1E2522;
+    --color-charcoal-light: #4A5550;
+
+    /* Superficies y Elevaciones */
+    --surface-bg: var(--color-cream-50);
+    --surface-card: #FFFFFF;
+    --surface-elevated: #FFFFFF;
+    --surface-border: rgba(62, 84, 71, 0.12);
+    --surface-border-subtle: rgba(62, 84, 71, 0.06);
+
+    /* Glassmorphism */
+    --glass-bg: rgba(250, 248, 245, 0.88);
+    --glass-bg-card: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.8);
+    --glass-blur: blur(16px);
+
+    /* -------------------------------------------------------------------------
+       2. TIPOGRAFÍA Y ESCALA FLUIDA (Clamp)
+       ------------------------------------------------------------------------- */
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Playfair Display', 'Fraunces', Georgia, serif;
+
+    --font-size-xs: clamp(0.72rem, 0.68rem + 0.2vw, 0.8125rem);
+    --font-size-sm: clamp(0.85rem, 0.81rem + 0.2vw, 0.9375rem);
+    --font-size-base: clamp(0.975rem, 0.925rem + 0.25vw, 1.0625rem);
+    --font-size-lg: clamp(1.1rem, 1.02rem + 0.4vw, 1.25rem);
+    --font-size-xl: clamp(1.28rem, 1.15rem + 0.6vw, 1.5rem);
+    --font-size-2xl: clamp(1.55rem, 1.35rem + 0.9vw, 1.95rem);
+    --font-size-3xl: clamp(1.9rem, 1.6rem + 1.4vw, 2.5rem);
+    --font-size-4xl: clamp(2.35rem, 1.95rem + 2vw, 3.25rem);
+    --font-size-5xl: clamp(2.9rem, 2.3rem + 2.8vw, 4.25rem);
+
+    /* -------------------------------------------------------------------------
+       3. SOMBRAS Y RADIOS
+       ------------------------------------------------------------------------- */
+    --radius-xs: 6px;
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+    --radius-full: 9999px;
+
+    --shadow-subtle: 0 2px 8px -2px rgba(31, 42, 35, 0.04), 0 1px 3px 0 rgba(31, 42, 35, 0.02);
+    --shadow-card: 0 10px 25px -8px rgba(31, 42, 35, 0.06), 0 3px 8px -2px rgba(31, 42, 35, 0.03);
+    --shadow-card-hover: 0 20px 40px -12px rgba(31, 42, 35, 0.12), 0 6px 14px -3px rgba(31, 42, 35, 0.05);
+    --shadow-drawer: -10px 0 35px -5px rgba(31, 42, 35, 0.18);
+    --shadow-glow-salvia: 0 0 40px -10px rgba(82, 110, 93, 0.35);
+    --shadow-glow-terracota: 0 0 35px -8px rgba(208, 122, 88, 0.3);
+
+    /* -------------------------------------------------------------------------
+       4. ANIMACIONES Y TRANSICIONES
+       ------------------------------------------------------------------------- */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast: 180ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
 }
 
-/* Custom scrollbar styling for clean aesthetic */
+/* -----------------------------------------------------------------------------
+   RESET & ESTILOS BASE
+   ----------------------------------------------------------------------------- */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    background-color: var(--surface-bg);
+    color: var(--color-charcoal);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+body.menu-open {
+    overflow: hidden !important;
+}
+
+/* Scrollbar estética */
 ::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #F7F6F2;
+    background: var(--color-cream-100);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #DED8CC;
-    border-radius: 4px;
+    background: var(--color-salvia-300);
+    border-radius: var(--radius-full);
+    border: 2px solid var(--color-cream-100);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #C7BDAB;
+    background: var(--color-salvia-500);
+}
+
+/* Foco accesible WCAG AA */
+:focus-visible {
+    outline: 2px solid var(--color-salvia-500);
+    outline-offset: 3px;
+    border-radius: var(--radius-xs);
+}
+
+/* -----------------------------------------------------------------------------
+   NAVBAR LAYOUT OPTIMIZADO (Sin colisiones, white-space: nowrap)
+   ----------------------------------------------------------------------------- */
+.navbar-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    height: 5rem;
+    width: 100%;
+}
+
+.navbar-links {
+    display: none;
+    align-items: center;
+    gap: 1.75rem;
+    white-space: nowrap;
+}
+
+@media (min-width: 1101px) {
+    .navbar-links {
+        display: flex;
+    }
+    .mobile-menu-trigger {
+        display: none !important;
+    }
+}
+
+@media (max-width: 1100px) {
+    .navbar-links {
+        display: none !important;
+    }
+    .mobile-menu-trigger {
+        display: inline-flex !important;
+    }
+}
+
+.nav-link {
+    color: var(--color-charcoal);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    padding-bottom: 0.25rem;
+    border-bottom: 2px solid transparent;
+    transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    cursor: pointer;
+}
+
+.nav-link:hover {
+    color: var(--color-salvia-600);
+    border-color: var(--color-salvia-600);
+}
+
+.nav-link-badge {
+    background: var(--color-terracota-50);
+    color: var(--color-terracota-600);
+    font-weight: 600;
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-terracota-200);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all var(--duration-fast) ease;
+    cursor: pointer;
+}
+
+.nav-link-badge:hover {
+    background: var(--color-terracota-100);
+    border-color: var(--color-terracota-400);
+    transform: translateY(-1px);
+}
+
+/* -----------------------------------------------------------------------------
+   MICRO-INTERACCIONES EN BOTONES Y ACCIONES
+   ----------------------------------------------------------------------------- */
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-salvia-500) 0%, var(--color-salvia-600) 100%);
+    color: #FFFFFF;
+    font-weight: 600;
+    padding: 0.875rem 1.75rem;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 14px -3px rgba(82, 110, 93, 0.4);
+    transition: transform var(--duration-fast) var(--ease-out-expo),
+                box-shadow var(--duration-fast) var(--ease-out-expo),
+                background var(--duration-normal) ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -4px rgba(82, 110, 93, 0.45);
+    background: linear-gradient(135deg, var(--color-salvia-600) 0%, var(--color-salvia-700) 100%);
+}
+
+.btn-primary:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 8px -2px rgba(82, 110, 93, 0.3);
+}
+
+.btn-secondary {
+    background: #FFFFFF;
+    color: var(--color-salvia-800);
+    font-weight: 600;
+    padding: 0.875rem 1.75rem;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--color-cream-200);
+    box-shadow: var(--shadow-subtle);
+    transition: all var(--duration-fast) var(--ease-out-expo);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-secondary:hover {
+    border-color: var(--color-salvia-500);
+    color: var(--color-salvia-600);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+}
+
+.btn-terracota {
+    background: linear-gradient(135deg, var(--color-terracota-500) 0%, var(--color-terracota-600) 100%);
+    color: #FFFFFF;
+    font-weight: 600;
+    padding: 0.875rem 1.75rem;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 14px -3px rgba(208, 122, 88, 0.4);
+    transition: all var(--duration-fast) var(--ease-out-expo);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.btn-terracota:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px -4px rgba(208, 122, 88, 0.45);
+    background: linear-gradient(135deg, var(--color-terracota-600) 0%, var(--color-terracota-700) 100%);
+}
+
+/* Badge del carrito con pulso */
+.badge-bounce {
+    animation: badge-pulse 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badge-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.35); }
+    100% { transform: scale(1); }
+}
+
+/* -----------------------------------------------------------------------------
+   HERO 2D ELEGANTE CON PARALLAX Y HOJAS FLOTANTES
+   ----------------------------------------------------------------------------- */
+.hero-plant-stage {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    height: 520px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-aura-glow {
+    position: absolute;
+    width: 380px;
+    height: 380px;
+    border-radius: var(--radius-full);
+    background: radial-gradient(circle, rgba(199, 216, 199, 0.55) 0%, rgba(244, 236, 226, 0.35) 60%, transparent 80%);
+    filter: blur(40px);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.hero-main-card {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 440px;
+    height: 480px;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: #FFFFFF;
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--shadow-card-hover);
+    transition: transform 120ms ease-out;
+    will-change: transform;
+}
+
+.hero-main-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Hojas decorativas flotantes en SVG */
+.floating-leaf {
+    position: absolute;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0.85;
+    filter: drop-shadow(0 8px 16px rgba(31, 42, 35, 0.12));
+}
+
+.leaf-top-right {
+    top: -15px;
+    right: -25px;
+    width: 90px;
+    height: 90px;
+    animation: float-leaf-1 9s ease-in-out infinite alternate;
+}
+
+.leaf-bottom-left {
+    bottom: 20px;
+    left: -35px;
+    width: 110px;
+    height: 110px;
+    animation: float-leaf-2 11s ease-in-out infinite alternate;
+}
+
+@keyframes float-leaf-1 {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(-16px) rotate(8deg); }
+}
+
+@keyframes float-leaf-2 {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(18px) rotate(-6deg); }
+}
+
+/* Tarjeta flotante "100% Climatizadas" */
+.hero-floating-pill {
+    position: absolute;
+    bottom: -18px;
+    left: -20px;
+    z-index: 4;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-lg);
+    padding: 0.85rem 1.25rem;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    transition: transform var(--duration-fast) ease;
+}
+
+.hero-floating-pill:hover {
+    transform: translateY(-2px);
+}
+
+/* -----------------------------------------------------------------------------
+   CONFIGURADOR 2D FOTORREALISTA "ARMÁ TU MACETA"
+   ----------------------------------------------------------------------------- */
+.pot-stage-2d {
+    position: relative;
+    width: 100%;
+    min-height: 520px;
+    background: radial-gradient(ellipse at 50% 40%, #FAF8F5 0%, #F4F1EA 55%, #E5ECE7 100%);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--shadow-card), inset 0 0 70px rgba(255, 255, 255, 0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 2rem 1.5rem;
+    transition: box-shadow var(--duration-normal) ease;
+}
+
+@media (max-width: 768px) {
+    .pot-stage-2d {
+        min-height: 380px;
+        aspect-ratio: 1 / 1;
+        padding: 1rem;
+    }
+}
+
+.pot-preview-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform-origin: bottom center;
+    transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+}
+
+/* Escalas por tamaño (S / M / L) */
+.pot-preview-wrap.pot-scale-s { transform: scale(0.82); }
+.pot-preview-wrap.pot-scale-m { transform: scale(1.0); }
+.pot-preview-wrap.pot-scale-l { transform: scale(1.18); }
+
+/* Flotación Idle Sutil (~2px, 6s) */
+.pot-idle-float {
+    animation: potIdleFloat 6s ease-in-out infinite;
+}
+
+@keyframes potIdleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* Contenedor de capas de imágenes para Crossfade */
+.pot-crossfade-stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pot-img-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 16px 22px rgba(28, 40, 32, 0.16));
+    transition: opacity 450ms cubic-bezier(0.16, 1, 0.3, 1),
+                transform 450ms cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    will-change: opacity, transform;
+}
+
+.pot-img-layer.is-active {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    z-index: 2;
+}
+
+.pot-img-layer.is-inactive {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+    z-index: 1;
+}
+
+/* Sombra de contacto elíptica realista */
+.pot-contact-shadow {
+    position: absolute;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    background: radial-gradient(ellipse at center, rgba(28, 40, 32, 0.38) 0%, rgba(28, 40, 32, 0.12) 50%, transparent 75%);
+    filter: blur(8px);
+    z-index: 0;
+    pointer-events: none;
+    transition: width 450ms cubic-bezier(0.16, 1, 0.3, 1), opacity 450ms ease;
+}
+
+.pot-preview-wrap.pot-scale-s .pot-contact-shadow { width: 210px; opacity: 0.75; }
+.pot-preview-wrap.pot-scale-m .pot-contact-shadow { width: 260px; opacity: 0.9; }
+.pot-preview-wrap.pot-scale-l .pot-contact-shadow { width: 310px; opacity: 1; }
+
+/* Skeleton Loader Shimmer */
+.pot-skeleton {
+    position: absolute;
+    inset: 10%;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(90deg, rgba(230, 236, 232, 0.4) 0%, rgba(255, 255, 255, 0.8) 50%, rgba(230, 236, 232, 0.4) 100%);
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.8s infinite;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+}
+
+@keyframes skeletonShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Botón de Zoom / Ampliar detalle */
+.btn-pot-zoom {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--surface-border);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-botanika-800);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    box-shadow: var(--shadow-subtle);
+    transition: all var(--duration-fast) ease;
+    cursor: pointer;
+}
+
+.btn-pot-zoom:hover {
+    background: #FFFFFF;
+    color: var(--color-terracota);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card);
+}
+
+/* Lightbox Modal de Zoom */
+.pot-zoom-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 300ms ease;
+}
+
+.pot-zoom-modal.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.pot-zoom-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(26, 38, 30, 0.8);
+    backdrop-filter: blur(12px);
+}
+
+.pot-zoom-content {
+    position: relative;
+    z-index: 2;
+    background: radial-gradient(ellipse at center, #FAF8F5 0%, #E8EEEA 100%);
+    border-radius: var(--radius-2xl);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    padding: 2rem;
+    max-width: 680px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: scale(0.95);
+    transition: transform 300ms var(--ease-out-expo);
+}
+
+.pot-zoom-modal.is-open .pot-zoom-content {
+    transform: scale(1);
+}
+
+/* Tarjetas de Selección con Miniatura */
+.config-thumb-card {
+    cursor: pointer;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--surface-border);
+    background: var(--surface-card);
+    transition: all var(--duration-fast) ease;
+}
+
+.config-thumb-card:hover {
+    border-color: var(--color-botanika-600);
+    transform: translateY(-1px);
+}
+
+.config-thumb-card.is-selected {
+    border: 2px solid var(--color-botanika-600);
+    background: var(--surface-tint);
+    box-shadow: var(--shadow-subtle);
+}
+
+.config-thumb-card:focus-visible {
+    outline: 2px solid var(--color-botanika-600);
+    outline-offset: 2px;
+}
+
+/* -----------------------------------------------------------------------------
+   PRODUCT CARDS ENRIQUECIDAS
+   ----------------------------------------------------------------------------- */
+.product-card {
+    background: var(--surface-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--surface-border);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-subtle);
+    transition: transform var(--duration-normal) var(--ease-out-expo),
+                box-shadow var(--duration-normal) var(--ease-out-expo),
+                border-color var(--duration-normal) ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: rgba(82, 110, 93, 0.25);
+}
+
+.product-image-container {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background-color: var(--color-salvia-50);
+    height: 16rem;
+    margin-bottom: 1rem;
+}
+
+.product-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--duration-slow) var(--ease-out-expo), filter var(--duration-normal) ease;
+}
+
+.product-card:hover .product-image-container img {
+    transform: scale(1.06);
+}
+
+.product-actions-overlay {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+.btn-action-round {
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-salvia-800);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    transition: transform var(--duration-fast) var(--ease-out-expo),
+                background var(--duration-fast) ease,
+                color var(--duration-fast) ease;
+    cursor: pointer;
+}
+
+.btn-action-round:hover {
+    transform: scale(1.1);
+    background: #FFFFFF;
+    color: var(--color-terracota-500);
+}
+
+.btn-action-round.active {
+    color: var(--color-terracota-500);
+    background: #FFFFFF;
+}
+
+/* -----------------------------------------------------------------------------
+   BENTO GRID (Beneficios)
+   ----------------------------------------------------------------------------- */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+    .bento-grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+}
+
+.bento-card {
+    background: #FFFFFF;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    box-shadow: var(--shadow-subtle);
+    transition: all var(--duration-normal) var(--ease-out-expo);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.bento-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: rgba(82, 110, 93, 0.3);
+}
+
+.bento-glow {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: var(--radius-full);
+    filter: blur(60px);
+    pointer-events: none;
+    opacity: 0.4;
+    transition: opacity var(--duration-normal) ease;
+}
+
+.bento-card:hover .bento-glow {
+    opacity: 0.7;
+}
+
+/* -----------------------------------------------------------------------------
+   MINI-CARRITO DRAWER LATERAL & OVERLAYS
+   ----------------------------------------------------------------------------- */
+.drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(19, 26, 22, 0.55);
+    backdrop-filter: blur(6px);
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-normal) ease;
+}
+
+.drawer-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.drawer-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 440px;
+    background: #FFFFFF;
+    z-index: 70;
+    box-shadow: var(--shadow-drawer);
+    transform: translateX(100%);
+    transition: transform var(--duration-normal) var(--ease-out-expo);
+    display: flex;
+    flex-direction: column;
+}
+
+.drawer-panel.active {
+    transform: translateX(0);
+}
+
+/* Mobile Nav Drawer */
+.mobile-drawer-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 85%;
+    max-width: 380px;
+    background: #FFFFFF;
+    z-index: 70;
+    box-shadow: 10px 0 35px -5px rgba(31, 42, 35, 0.18);
+    transform: translateX(-100%);
+    transition: transform var(--duration-normal) var(--ease-out-expo);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.mobile-drawer-panel.active {
+    transform: translateX(0);
+}
+
+/* -----------------------------------------------------------------------------
+   SKELETON LOADERS & REVEAL ANIMATIONS (Single-shot 60fps)
+   ----------------------------------------------------------------------------- */
+.skeleton {
+    background: linear-gradient(90deg, #EFECE6 25%, #F7F6F2 50%, #EFECE6 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.4s infinite;
+    border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 550ms var(--ease-out-expo), transform 550ms var(--ease-out-expo);
+    will-change: opacity, transform;
+}
+
+.reveal-on-scroll.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.stagger-1 { transition-delay: 50ms; }
+.stagger-2 { transition-delay: 100ms; }
+.stagger-3 { transition-delay: 150ms; }
+.stagger-4 { transition-delay: 200ms; }
+
+/* Respeto estricto por Reduced Motion (Accesibilidad WCAG AA) */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .reveal-on-scroll {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    .hero-main-card {
+        transform: none !important;
+    }
+    .floating-leaf {
+        animation: none !important;
+    }
 }

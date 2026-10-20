@@ -7,7 +7,7 @@ const { client, getClient, Preference, Payment } = require('../config/mercadopag
  * @param {string} status
  * @returns {string}
  */
-function formatBackUrl(baseUrl, status) {
+function formatBackUrl(baseUrl, status, returnTo = null) {
     if (!baseUrl) return '';
     try {
         const urlObj = new URL(baseUrl);
@@ -17,13 +17,18 @@ function formatBackUrl(baseUrl, status) {
             urlObj.pathname += '/index.html';
         }
         urlObj.searchParams.set('status', status);
+        if (returnTo) {
+            urlObj.searchParams.set('return_to', returnTo);
+        }
         return urlObj.toString();
     } catch (e) {
         let clean = baseUrl.split('?')[0].split('#')[0].replace(/\/+$/, '');
         if (!clean.endsWith('.html') && !clean.endsWith('.htm')) {
             clean += '/index.html';
         }
-        return `${clean}?status=${status}`;
+        const glue = clean.includes('?') ? '&' : '?';
+        const returnPart = returnTo ? `&return_to=${encodeURIComponent(returnTo)}` : '';
+        return `${clean}${glue}status=${status}${returnPart}`;
     }
 }
 
@@ -70,26 +75,31 @@ class PaymentService {
         }
 
         // Determinar URL de retorno a la web del cliente.
-        // NOTA CRÍTICA MERCADO PAGO:
-        // Mercado Pago exige HTTPS para auto_return: 'approved' (redirección automática instantánea).
-        // Si se envían URLs con http:// (ej: localhost sin túnel), Mercado Pago descarta las back_urls
-        // y deshabilita auto_return.
-        // Por ello:
-        // 1. Si clientUrl es HTTPS (ej: túnel ngrok/localtunnel o dominio productivo), usamos clientUrl.
-        // 2. Si clientUrl es local HTTP pero CLIENT_URL en .env es HTTPS, priorizamos CLIENT_URL (.env) para garantizar auto_return.
-        // 3. De lo contrario, usamos clientUrl o process.env.CLIENT_URL o fallback en Vercel.
+        // NOTA CRÍTICA MERCADO PAGO / SESIÓN:
+        // Mercado Pago exige obligatoriamente URLs HTTPS para back_urls (descarta silenciosamente http://).
+        // 1. Si el cliente está en HTTPS (producción o túnel), usamos clientUrl directamente para preservar Same-Origin.
+        // 2. Si el cliente está en local HTTP (ej: http://localhost:3000), usamos el túnel HTTPS activo o CLIENT_URL
+        //    y adjuntamos return_to para que al retornar se reenvíe inmediatamente a la URL local del usuario.
+        const isClientHttps = clientUrl && clientUrl.startsWith('https://');
+        const httpsGateway = process.env.TUNNEL_URL || 
+                             'https://democrat-copyrighted-pension-nec.trycloudflare.com' ||
+                             (process.env.CLIENT_URL && process.env.CLIENT_URL.startsWith('https://') ? process.env.CLIENT_URL : null);
+
         let targetUrl = '';
-        if (clientUrl && clientUrl.startsWith('https://')) {
+        let localReturnTo = null;
+
+        if (isClientHttps) {
             targetUrl = clientUrl;
-        } else if (process.env.CLIENT_URL && process.env.CLIENT_URL.startsWith('https://')) {
-            targetUrl = process.env.CLIENT_URL;
+        } else if (httpsGateway) {
+            targetUrl = httpsGateway;
+            localReturnTo = clientUrl;
         } else {
-            targetUrl = clientUrl || process.env.CLIENT_URL || 'https://bugsbasters-cuartosemestre.vercel.app';
+            targetUrl = clientUrl || 'http://localhost:3000';
         }
 
-        const successUrl = formatBackUrl(targetUrl, 'approved');
-        const failureUrl = formatBackUrl(targetUrl, 'failure');
-        const pendingUrl = formatBackUrl(targetUrl, 'pending');
+        const successUrl = formatBackUrl(targetUrl, 'approved', localReturnTo);
+        const failureUrl = formatBackUrl(targetUrl, 'failure', localReturnTo);
+        const pendingUrl = formatBackUrl(targetUrl, 'pending', localReturnTo);
 
         // Detectar si las credenciales son de Sandbox o Producción
         const mpToken = process.env.MP_ACCESS_TOKEN || '';

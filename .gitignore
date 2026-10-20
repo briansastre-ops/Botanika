@@ -41,3 +41,6 @@ $RECYCLE.BIN/
 *.njsproj
 *.sln
 *.sw?
+
+# Capturas de pantalla temporales
+imagen-*.png
