@@ -1,9 +1,10 @@
 /**
  * =============================================================================
- * BOTANIKA STUDIO & PLANTAS — E-COMMERCE SPA FULL STACK & SISTEMA 3D SPLINE
+ * BOTANIKA STUDIO & PLANTAS — E-COMMERCE SPA FULL STACK
  * =============================================================================
- * Arquitectura: Single Page Application (Vanilla ES6+)
- * Integraciones: Supabase Auth/DB (RLS), Mercado Pago Checkout Pro, Spline 3D Viewer
+ * Arquitectura: Single Page Application reactiva en Vanilla JavaScript (ES6+)
+ * Integraciones: Supabase Auth/DB (PostgreSQL con RLS) y Checkout Pro Mercado Pago.
+ * Cero dependencias externas 3D.
  * =============================================================================
  */
 
@@ -28,22 +29,6 @@
     }
 })();
 
-// =============================================================================
-// CONSTANTES CONFIGURABLES DE SPLINE (3D INTERACTIVO)
-// =============================================================================
-/**
- * URL de la escena Spline 3D para el Hero de la tienda.
- * Reemplazá este placeholder con la URL publicada de tu escena de Spline:
- * Ejemplo: https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode
- */
-const SPLINE_HERO_URL = 'https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode';
-
-/**
- * URL de la escena Spline 3D para el Configurador "Armá tu maceta".
- * Reemplazá este placeholder con la URL de tu escena publicada:
- */
-const SPLINE_CONFIGURATOR_URL = 'https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode';
-
 /**
  * @typedef {Object} Product
  * @property {number} id - Identificador único del producto.
@@ -63,7 +48,7 @@ const SPLINE_CONFIGURATOR_URL = 'https://prod.spline.design/6Wq1Q7YGyM-iab9i/sce
  */
 
 /**
- * Catálogo base de productos disponibles en la tienda Botanika.
+ * Catálogo oficial de productos Botanika.
  * @type {Product[]}
  */
 const products = [
@@ -218,30 +203,120 @@ let authModalMode = 'login';
 /** @type {number|null} Índice de la pregunta frecuente abierta en el acordeón */
 let openFaqIndex = 0;
 
-// Estado del Configurador 3D "Armá tu maceta"
-let selectedConfigFinish = 'terracota';
+// =============================================================================
+// ESTADO Y DEFINICIÓN DEL CONFIGURADOR 2D "ARMÁ TU MACETA"
+// =============================================================================
 const POT_FINISHES = {
     terracota: {
         name: 'Terracota Artesanal',
+        basePrice: 12500,
         hex: '#D07A58',
-        price: 12500,
-        texture: 'Barro cocido poroso con micro-textura mate tradicional.',
-        image: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=600'
+        bodyGradient: 'url(#pot-grad-terracota)',
+        rimColor: '#E48B69',
+        innerColor: '#4A3428',
+        specularOpacity: '0.12',
+        textureText: 'Barro cocido poroso tradicional con secado artesanal al sol. Favorece la oxigenación y previene el encharcamiento.'
     },
     blanca: {
         name: 'Cerámica Blanca Esmaltada',
+        basePrice: 14900,
         hex: '#F7F6F2',
-        price: 14900,
-        texture: 'Esmalte cerámico horneado a alta temperatura con acabado satinado.',
-        image: 'https://images.unsplash.com/photo-1509423350716-97f9360b4e09?auto=format&fit=crop&q=80&w=600'
+        bodyGradient: 'url(#pot-grad-blanca)',
+        rimColor: '#FFFFFF',
+        innerColor: '#3A3A36',
+        specularOpacity: '0.28',
+        textureText: 'Gres cerámico horneado a 1200°C con esmalte satinado suave. A prueba de rayaduras y fácil de limpiar.'
     },
     gris: {
         name: 'Gris Cálido Mineral',
+        basePrice: 15200,
         hex: '#7A827B',
-        price: 15200,
-        texture: 'Compuesto mineral contemporáneo de tacto sedoso y peso equilibrado.',
-        image: 'https://images.unsplash.com/photo-1637967888100-d83beabf90a1?auto=format&fit=crop&q=80&w=600'
+        bodyGradient: 'url(#pot-grad-gris)',
+        rimColor: '#9BA39C',
+        innerColor: '#2E3330',
+        specularOpacity: '0.18',
+        textureText: 'Compuesto mineral contemporáneo de tacto sedoso mate. Resistencia térmica y peso equilibrado.'
     }
+};
+
+const POT_SIZES = {
+    s: { label: 'S — Pequeña (Ø15cm)', short: 'S', priceDelta: -2000, scaleClass: 'pot-scale-s' },
+    m: { label: 'M — Mediana (Ø20cm)', short: 'M', priceDelta: 0, scaleClass: 'pot-scale-m' },
+    l: { label: 'L — Grande (Ø26cm)', short: 'L', priceDelta: 3500, scaleClass: 'pot-scale-l' }
+};
+
+const POT_PLANTS = {
+    monstera: {
+        id: 'monstera',
+        name: 'Monstera Deliciosa',
+        desc: 'Hojas costilladas tropicales de rápido desarrollo.',
+        svgPath: `
+            <g transform="translate(10, 0)">
+                <!-- Tallos -->
+                <path d="M 120 180 Q 115 110 100 40" stroke="#3D5A45" stroke-width="6" fill="none" stroke-linecap="round"/>
+                <path d="M 120 180 Q 80 130 50 85" stroke="#3D5A45" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <path d="M 120 180 Q 155 125 180 80" stroke="#3D5A45" stroke-width="5" fill="none" stroke-linecap="round"/>
+                <!-- Hoja Central Monstera -->
+                <path d="M 100 40 C 70 30 65 70 85 95 C 60 85 55 115 80 135 C 90 145 110 140 120 125 C 130 140 150 145 160 135 C 185 115 180 85 155 95 C 175 70 170 30 140 40 C 120 20 110 20 100 40 Z" fill="#526E5D"/>
+                <!-- Perforaciones Monstera -->
+                <ellipse cx="105" cy="70" rx="4" ry="12" transform="rotate(-20 105 70)" fill="#FAF8F5"/>
+                <ellipse cx="135" cy="70" rx="4" ry="12" transform="rotate(20 135 70)" fill="#FAF8F5"/>
+                <ellipse cx="95" cy="105" rx="5" ry="15" transform="rotate(-35 95 105)" fill="#FAF8F5"/>
+                <ellipse cx="145" cy="105" rx="5" ry="15" transform="rotate(35 145 105)" fill="#FAF8F5"/>
+                <!-- Hoja Izquierda -->
+                <path d="M 50 85 C 25 75 25 110 45 130 C 65 145 80 130 75 110 C 80 90 65 75 50 85 Z" fill="#435B4C"/>
+                <ellipse cx="48" cy="105" rx="3" ry="10" transform="rotate(-25 48 105)" fill="#FAF8F5"/>
+                <!-- Hoja Derecha -->
+                <path d="M 180 80 C 205 70 205 105 185 125 C 165 140 150 125 155 105 C 150 85 165 70 180 80 Z" fill="#435B4C"/>
+                <ellipse cx="182" cy="100" rx="3" ry="10" transform="rotate(25 182 100)" fill="#FAF8F5"/>
+            </g>
+        `
+    },
+    ficus: {
+        id: 'ficus',
+        name: 'Ficus Lyrata',
+        desc: 'Porte escultórico con hojas en forma de violín.',
+        svgPath: `
+            <g transform="translate(10, 0)">
+                <!-- Tronco leñoso -->
+                <path d="M 120 190 Q 120 120 120 40" stroke="#5C4535" stroke-width="7" fill="none" stroke-linecap="round"/>
+                <!-- Hoja 1 Superior -->
+                <path d="M 120 30 C 80 10 75 60 95 80 C 80 95 85 120 115 125 C 120 125 125 125 125 125 C 155 120 160 95 145 80 C 165 60 160 10 120 30 Z" fill="#4B6655"/>
+                <path d="M 120 35 L 120 120" stroke="#728F7D" stroke-width="2" fill="none"/>
+                <!-- Hoja 2 Media Izq -->
+                <path d="M 115 80 C 75 70 70 110 85 125 C 70 140 75 160 105 165 L 115 130 Z" fill="#3D5345"/>
+                <!-- Hoja 3 Media Der -->
+                <path d="M 125 80 C 165 70 170 110 155 125 C 170 140 165 160 135 165 L 125 130 Z" fill="#3D5345"/>
+            </g>
+        `
+    },
+    haworthia: {
+        id: 'haworthia',
+        name: 'Haworthia Cebra',
+        desc: 'Suculenta compacta con estrías blancas de mínimo riego.',
+        svgPath: `
+            <g transform="translate(10, 40)">
+                <!-- Roseta de suculenta -->
+                <path d="M 120 140 L 120 30 L 110 140 Z" fill="#2E4034"/>
+                <path d="M 120 140 L 90 45 L 105 140 Z" fill="#384E3F"/>
+                <path d="M 120 140 L 150 45 L 135 140 Z" fill="#384E3F"/>
+                <path d="M 120 140 L 65 70 L 95 140 Z" fill="#45604E"/>
+                <path d="M 120 140 L 175 70 L 145 140 Z" fill="#45604E"/>
+                <path d="M 120 140 L 50 110 L 90 140 Z" fill="#526E5D"/>
+                <path d="M 120 140 L 190 110 L 150 140 Z" fill="#526E5D"/>
+                <!-- Rayas Cebra blancas -->
+                <path d="M 116 55 L 124 55 M 115 75 L 125 75 M 114 95 L 126 95" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M 92 65 L 100 68 M 89 85 L 98 90 M 85 105 L 96 110" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M 148 65 L 140 68 M 151 85 L 142 90 M 155 105 L 144 110" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+            </g>
+        `
+    }
+};
+
+let configuratorState = {
+    finish: 'terracota',
+    size: 'm',
+    plant: 'monstera'
 };
 
 // Estado de Filtros del Catálogo
@@ -264,9 +339,6 @@ let quizState = {
 // ENRUTAMIENTO SPA & NAVEGACIÓN
 // =============================================================================
 
-/**
- * Enrutador central de la SPA. Cambia la vista activa y renderiza sin recargar.
- */
 function navigateTo(view, param) {
     currentView = view;
     if (param) currentProductId = param;
@@ -276,12 +348,11 @@ function navigateTo(view, param) {
         lucide.createIcons();
     }
     initScrollReveal();
+    if (view === 'home') {
+        initHeroParallax();
+    }
 }
 
-/**
- * Desplaza suavemente hacia una sección de la landing page.
- * Si el usuario se encuentra en otra vista, primero regresa al home.
- */
 function goToLandingSection(sectionId) {
     if (currentView !== 'home') {
         currentView = 'home';
@@ -296,15 +367,31 @@ function goToLandingSection(sectionId) {
 }
 
 /**
- * Alterna el menú responsive móvil.
+ * Control del Menú Móvil accesible con Drawer
  */
-function toggleMobileMenu() {
+function toggleMobileMenu(forceState) {
     const menu = document.getElementById('mobile-menu');
-    if (menu) menu.classList.toggle('hidden');
+    const backdrop = document.getElementById('mobile-menu-backdrop');
+    const btn = document.getElementById('mobile-menu-btn');
+    if (!menu) return;
+
+    const isOpen = typeof forceState === 'boolean' ? !forceState : menu.classList.contains('active');
+
+    if (isOpen) {
+        menu.classList.remove('active');
+        if (backdrop) backdrop.classList.remove('active');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('menu-open');
+    } else {
+        menu.classList.add('active');
+        if (backdrop) backdrop.classList.add('active');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+        document.body.classList.add('menu-open');
+    }
 }
 
 /**
- * Muestra notificación flotante (Toast) con iconografía accesible.
+ * Toast con Iconografía Dinámica
  */
 function showToast(msg, type = 'success') {
     const toast = document.getElementById('toast');
@@ -338,13 +425,15 @@ function showToast(msg, type = 'success') {
 // CARRITO DE COMPRAS & MINI-CARRITO DRAWER
 // =============================================================================
 
-/**
- * Actualiza el contador numérico del carrito en el header y en el drawer.
- */
 function updateCartBadge() {
     const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
     const badge = document.getElementById('cart-badge');
-    if (badge) badge.innerText = totalItems;
+    if (badge) {
+        badge.innerText = totalItems;
+        badge.classList.remove('badge-bounce');
+        void badge.offsetWidth;
+        badge.classList.add('badge-bounce');
+    }
 
     const drawerCount = document.getElementById('cart-drawer-count');
     if (drawerCount) drawerCount.innerText = totalItems;
@@ -352,9 +441,6 @@ function updateCartBadge() {
     updateCartDrawer();
 }
 
-/**
- * Añade un producto al carrito de compras.
- */
 function addToCart(id) {
     const product = products.find(p => p.id === id);
     if (!product) return;
@@ -376,9 +462,6 @@ function addToCart(id) {
     openCartDrawer();
 }
 
-/**
- * Abre el Drawer lateral del Mini-Carrito.
- */
 function openCartDrawer() {
     const drawer = document.getElementById('cart-drawer');
     const backdrop = document.getElementById('cart-drawer-backdrop');
@@ -389,9 +472,6 @@ function openCartDrawer() {
     updateCartDrawer();
 }
 
-/**
- * Cierra el Drawer lateral del Mini-Carrito.
- */
 function closeCartDrawer() {
     const drawer = document.getElementById('cart-drawer');
     const backdrop = document.getElementById('cart-drawer-backdrop');
@@ -401,9 +481,6 @@ function closeCartDrawer() {
     }
 }
 
-/**
- * Sincroniza y renderiza los ítems en el Mini-Carrito Drawer.
- */
 function updateCartDrawer() {
     const container = document.getElementById('cart-drawer-items');
     const subtotalEl = document.getElementById('cart-drawer-subtotal');
@@ -415,7 +492,6 @@ function updateCartDrawer() {
     const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
     if (subtotalEl) subtotalEl.innerText = `$${subtotal.toLocaleString()}`;
 
-    // Progreso de envío gratis ($60.000 meta)
     const threshold = 60000;
     const percent = Math.min(100, Math.round((subtotal / threshold) * 100));
     if (freeShippingBar) freeShippingBar.style.width = `${percent}%`;
@@ -488,7 +564,7 @@ function removeFromCart(index) {
 }
 
 // =============================================================================
-// WISHLIST / FAVORITOS (LOCALSTORAGE + COMPATIBILIDAD SUPABASE)
+// WISHLIST / FAVORITOS
 // =============================================================================
 
 function saveWishlist() {
@@ -759,8 +835,7 @@ function renderQuizStep() {
             </div>
         `;
     } else {
-        // Calcular recomendación
-        let recId = 1; // Default: Monstera
+        let recId = 1;
         if (quizState.answers[0] === 'low_light' || quizState.answers[2] === 'beginner') {
             recId = 5; // Kit Sansevieria
         } else if (quizState.answers[1] === 'pet_yes') {
@@ -819,65 +894,124 @@ function selectQuizAnswer(val) {
 }
 
 // =============================================================================
-// CONFIGURADOR 3D "ARMÁ TU MACETA"
+// CONFIGURADOR 2D "ARMÁ TU MACETA" (ACABADO, TAMAÑO Y PLANTA)
 // =============================================================================
 
-function selectPotFinish(finishKey) {
-    if (!POT_FINISHES[finishKey]) return;
-    selectedConfigFinish = finishKey;
-    const finish = POT_FINISHES[finishKey];
+function calculateConfigPrice() {
+    const finish = POT_FINISHES[configuratorState.finish];
+    const size = POT_SIZES[configuratorState.size];
+    return finish.basePrice + size.priceDelta;
+}
 
-    // Intentar comunicar a Spline Viewer si la escena soporta eventos o variables
-    const spline = document.getElementById('spline-configurator-viewer');
-    if (spline) {
-        try {
-            if (typeof spline.setVariable === 'function') {
-                spline.setVariable('Finish', finish.name);
-                spline.setVariable('Material', finishKey);
-            }
-            if (typeof spline.emitEvent === 'function') {
-                spline.emitEvent('changeFinish', finishKey);
-            }
-        } catch (e) {
-            console.log('Spline event interact:', finishKey);
-        }
-    }
+function updateConfiguratorPreview() {
+    const finish = POT_FINISHES[configuratorState.finish];
+    const size = POT_SIZES[configuratorState.size];
+    const plant = POT_PLANTS[configuratorState.plant];
+    const total = calculateConfigPrice();
 
-    // Actualizar UI del configurador
+    // Actualizar elementos de texto
     const priceEl = document.getElementById('config-price');
     const nameEl = document.getElementById('config-name');
     const descEl = document.getElementById('config-desc');
-    const previewImg = document.getElementById('config-fallback-img');
+    const sizeBadge = document.getElementById('config-size-badge');
 
-    if (priceEl) priceEl.innerText = `$${finish.price.toLocaleString()}`;
-    if (nameEl) nameEl.innerText = finish.name;
-    if (descEl) descEl.innerText = finish.texture;
-    if (previewImg) previewImg.src = finish.image;
+    if (priceEl) priceEl.innerText = `$${total.toLocaleString()}`;
+    if (nameEl) nameEl.innerText = `${finish.name} (${size.short})`;
+    if (descEl) descEl.innerText = finish.textureText;
+    if (sizeBadge) sizeBadge.innerText = `${size.label} • ${plant.name}`;
+
+    // Actualizar SVG de la Maceta
+    const potBody = document.getElementById('pot-svg-body');
+    const potRim = document.getElementById('pot-svg-rim');
+    const potInner = document.getElementById('pot-svg-inner');
+    const potHighlight = document.getElementById('pot-svg-highlight');
+    const potWrap = document.getElementById('pot-preview-wrap');
+    const plantLayer = document.getElementById('pot-plant-container');
+
+    if (potBody) potBody.setAttribute('fill', finish.bodyGradient);
+    if (potRim) potRim.setAttribute('fill', finish.rimColor);
+    if (potInner) potInner.setAttribute('fill', finish.innerColor);
+    if (potHighlight) potHighlight.setAttribute('opacity', finish.specularOpacity);
+
+    // Escalar según tamaño S / M / L
+    if (potWrap) {
+        potWrap.className = `pot-preview-wrap ${size.scaleClass}`;
+    }
+
+    // Cambiar la planta interior
+    if (plantLayer) {
+        plantLayer.innerHTML = `
+            <svg viewBox="0 0 240 200" class="w-full h-full">
+                ${plant.svgPath}
+            </svg>
+        `;
+    }
 
     // Actualizar botones de acabado
-    ['terracota', 'blanca', 'gris'].forEach(k => {
+    Object.keys(POT_FINISHES).forEach(k => {
         const btn = document.getElementById(`finish-btn-${k}`);
         if (btn) {
-            if (k === finishKey) {
-                btn.className = 'flex items-center space-x-2.5 p-3 rounded-2xl border-2 border-botanika-600 bg-botanika-50 text-left transition';
-            } else {
-                btn.className = 'flex items-center space-x-2.5 p-3 rounded-2xl border border-botanika-300 hover:border-botanika-600 bg-white text-left transition';
-            }
+            btn.className = k === configuratorState.finish 
+                ? 'w-full flex items-center justify-between p-3.5 rounded-2xl border-2 border-botanika-600 bg-botanika-50 text-left transition'
+                : 'w-full flex items-center justify-between p-3.5 rounded-2xl border border-botanika-300 hover:border-botanika-600 bg-white text-left transition';
         }
     });
 
-    showToast(`Acabado cambiado: ${finish.name}`);
+    // Actualizar botones de tamaño
+    Object.keys(POT_SIZES).forEach(s => {
+        const btn = document.getElementById(`size-btn-${s}`);
+        if (btn) {
+            btn.className = s === configuratorState.size
+                ? 'py-2 px-3.5 rounded-xl border-2 border-botanika-600 bg-botanika-600 text-white font-semibold text-xs transition shadow-2xs'
+                : 'py-2 px-3.5 rounded-xl border border-botanika-300 hover:border-botanika-600 bg-white text-botanika-800 text-xs font-medium transition';
+        }
+    });
+
+    // Actualizar botones de planta
+    Object.keys(POT_PLANTS).forEach(p => {
+        const btn = document.getElementById(`plant-btn-${p}`);
+        if (btn) {
+            btn.className = p === configuratorState.plant
+                ? 'p-2.5 rounded-xl border-2 border-botanika-600 bg-botanika-50 text-xs font-semibold text-botanika-800 transition flex items-center space-x-2'
+                : 'p-2.5 rounded-xl border border-botanika-300 hover:border-botanika-600 bg-white text-xs font-medium text-botanika-700 transition flex items-center space-x-2';
+        }
+    });
+}
+
+function selectPotFinish(finishKey) {
+    if (!POT_FINISHES[finishKey]) return;
+    configuratorState.finish = finishKey;
+    updateConfiguratorPreview();
+    showToast(`Acabado: ${POT_FINISHES[finishKey].name}`);
+}
+
+function selectPotSize(sizeKey) {
+    if (!POT_SIZES[sizeKey]) return;
+    configuratorState.size = sizeKey;
+    updateConfiguratorPreview();
+    showToast(`Tamaño seleccionado: ${POT_SIZES[sizeKey].label}`);
+}
+
+function selectPotPlant(plantKey) {
+    if (!POT_PLANTS[plantKey]) return;
+    configuratorState.plant = plantKey;
+    updateConfiguratorPreview();
+    showToast(`Planta elegida: ${POT_PLANTS[plantKey].name}`);
 }
 
 function addCustomPotToCart() {
-    const finish = POT_FINISHES[selectedConfigFinish];
+    const finish = POT_FINISHES[configuratorState.finish];
+    const size = POT_SIZES[configuratorState.size];
+    const plant = POT_PLANTS[configuratorState.plant];
+    const totalPrice = calculateConfigPrice();
+
     const customItem = {
-        id: 300 + (selectedConfigFinish === 'terracota' ? 1 : selectedConfigFinish === 'blanca' ? 2 : 3),
-        name: `Maceta de Autor 20cm (${finish.name})`,
-        price: finish.price,
+        id: 400 + (configuratorState.finish === 'terracota' ? 10 : configuratorState.finish === 'blanca' ? 20 : 30) + (configuratorState.size === 's' ? 1 : configuratorState.size === 'm' ? 2 : 3),
+        name: `Maceta de Autor (${finish.name}) + ${plant.name}`,
+        price: totalPrice,
         qty: 1,
-        image: finish.image,
-        pot: finish.name
+        image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&q=80&w=300",
+        pot: `${finish.name} (${size.short}) con ${plant.name}`
     };
 
     const existing = cart.find(item => item.id === customItem.id);
@@ -893,23 +1027,60 @@ function addCustomPotToCart() {
 }
 
 // =============================================================================
-// NEWSLETTER
+// PARALLAX DEL HERO 2D CON EL MOUSE (CSS TRANSFORM + REQUESTANIMATIONFRAME)
 // =============================================================================
 
-function handleNewsletterSubmit(e) {
-    e.preventDefault();
-    const input = document.getElementById('newsletter-email');
-    if (!input || !input.value) return;
-    showToast('¡Gracias por unirte! Usá el código BOTANIKA10 para 10% OFF 🌿');
-    input.value = '';
+function initHeroParallax() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.innerWidth < 1024) {
+        return;
+    }
+    const stage = document.getElementById('hero-plant-stage');
+    const card = document.getElementById('hero-parallax-card');
+    if (!stage || !card) return;
+
+    let targetX = 0, targetY = 0;
+    let currentX = 0, currentY = 0;
+    let isTicking = false;
+
+    function renderParallax() {
+        currentX += (targetX - currentX) * 0.08;
+        currentY += (targetY - currentY) * 0.08;
+        card.style.transform = `perspective(1000px) rotateY(${currentX * 7}deg) rotateX(${-currentY * 7}deg) translate3d(${currentX * 12}px, ${currentY * 12}px, 0)`;
+
+        if (Math.abs(targetX - currentX) > 0.001 || Math.abs(targetY - currentY) > 0.001) {
+            requestAnimationFrame(renderParallax);
+        } else {
+            isTicking = false;
+        }
+    }
+
+    stage.addEventListener('mousemove', (e) => {
+        const rect = stage.getBoundingClientRect();
+        targetX = (e.clientX - rect.left) / rect.width - 0.5;
+        targetY = (e.clientY - rect.top) / rect.height - 0.5;
+        if (!isTicking) {
+            isTicking = true;
+            requestAnimationFrame(renderParallax);
+        }
+    });
+
+    stage.addEventListener('mouseleave', () => {
+        targetX = 0;
+        targetY = 0;
+        if (!isTicking) {
+            isTicking = true;
+            requestAnimationFrame(renderParallax);
+        }
+    });
 }
 
 // =============================================================================
-// SCROLL REVEAL CON INTERSECTION OBSERVER
+// SCROLL REVEAL CON INTERSECTION OBSERVER (SINGLE-SHOT A 60FPS)
 // =============================================================================
 
 function initScrollReveal() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.querySelectorAll('.reveal-on-scroll').forEach(el => el.classList.add('revealed'));
         return;
     }
     const elements = document.querySelectorAll('.reveal-on-scroll:not(.revealed)');
@@ -923,7 +1094,7 @@ function initScrollReveal() {
                     obs.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.12 });
+        }, { threshold: 0.1 });
 
         elements.forEach(el => observer.observe(el));
     } else {
@@ -935,9 +1106,6 @@ function initScrollReveal() {
 // AUTENTICACIÓN CON SUPABASE & RUTA PROTEGIDA DE COMPRA
 // =============================================================================
 
-/**
- * Sincroniza la barra de navegación del header con el estado de sesión de Supabase.
- */
 function updateAuthUI() {
     const headerContainer = document.getElementById('auth-header-container');
     const mobileContainer = document.getElementById('auth-mobile-container');
@@ -950,9 +1118,9 @@ function updateAuthUI() {
             <div class="flex items-center space-x-2">
                 <button onclick="navigateTo('profile')" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-botanika-100 hover:bg-botanika-200 text-botanika-800 text-xs font-medium transition border border-botanika-300 shadow-sm" title="Ver mi cuenta y órdenes">
                     <span class="w-6 h-6 rounded-full bg-botanika-600 text-white flex items-center justify-center font-bold text-xs">${userInitial}</span>
-                    <span class="max-w-[120px] truncate hidden sm:inline">${displayName}</span>
+                    <span class="max-w-[110px] truncate hidden sm:inline">${displayName}</span>
                 </button>
-                <button onclick="handleSignOut()" class="text-xs text-botanika-700 hover:text-botanika-terracota font-medium px-2 py-1.5 rounded transition underline" title="Cerrar sesión">
+                <button onclick="handleSignOut()" class="text-xs text-botanika-700 hover:text-botanika-terracota font-medium px-2 py-1.5 rounded transition underline whitespace-nowrap" title="Cerrar sesión">
                     Cerrar sesión
                 </button>
             </div>
@@ -963,16 +1131,16 @@ function updateAuthUI() {
             mobileContainer.innerHTML = `
                 <div class="flex items-center justify-between py-2 text-sm">
                     <span class="font-medium text-botanika-800">${currentUser.email}</span>
-                    <button onclick="handleSignOut(); toggleMobileMenu();" class="text-xs text-botanika-terracota font-semibold underline">Cerrar sesión</button>
+                    <button onclick="handleSignOut(); toggleMobileMenu(false);" class="text-xs text-botanika-terracota font-semibold underline">Cerrar sesión</button>
                 </div>
             `;
         }
     } else {
         const unauthHtml = `
-            <button id="btn-header-login" onclick="openAuthModal('login')" class="text-xs font-semibold px-3 py-2 text-botanika-800 hover:text-botanika-600 transition">
+            <button id="btn-header-login" onclick="openAuthModal('login')" class="text-xs font-semibold px-2.5 py-2 text-botanika-800 hover:text-botanika-600 transition whitespace-nowrap">
                 Iniciar sesión
             </button>
-            <button id="btn-header-register" onclick="openAuthModal('register')" class="btn-primary text-xs py-2 px-3.5 rounded-xl">
+            <button id="btn-header-register" onclick="openAuthModal('register')" class="btn-primary text-xs py-2 px-3 rounded-xl whitespace-nowrap hidden sm:inline-flex">
                 Registrarse
             </button>
         `;
@@ -981,8 +1149,8 @@ function updateAuthUI() {
         if (mobileContainer) {
             mobileContainer.innerHTML = `
                 <div class="grid grid-cols-2 gap-2 pt-2">
-                    <button onclick="openAuthModal('login'); toggleMobileMenu();" class="w-full py-2 border border-botanika-600 rounded-xl text-xs font-semibold text-center">Iniciar sesión</button>
-                    <button onclick="openAuthModal('register'); toggleMobileMenu();" class="w-full btn-primary py-2 text-xs text-center">Registrarse</button>
+                    <button onclick="openAuthModal('login'); toggleMobileMenu(false);" class="w-full py-2 border border-botanika-600 rounded-xl text-xs font-semibold text-center">Iniciar sesión</button>
+                    <button onclick="openAuthModal('register'); toggleMobileMenu(false);" class="w-full btn-primary py-2 text-xs text-center">Registrarse</button>
                 </div>
             `;
         }
@@ -993,9 +1161,6 @@ function updateAuthUI() {
     }
 }
 
-/**
- * Abre el modal de autenticación (Login o Registro).
- */
 function openAuthModal(mode = 'login', isProtectedNotice = false) {
     authModalMode = mode;
     const modal = document.getElementById('auth-modal');
@@ -1026,9 +1191,6 @@ function openAuthModal(mode = 'login', isProtectedNotice = false) {
     }
 }
 
-/**
- * Cierra el modal de autenticación.
- */
 function closeAuthModal() {
     const modal = document.getElementById('auth-modal');
     const card = document.getElementById('auth-modal-card');
@@ -1043,9 +1205,6 @@ function closeAuthModal() {
     if (form) form.reset();
 }
 
-/**
- * Alterna entre Login y Registro dentro del modal.
- */
 function switchAuthTab(mode) {
     authModalMode = mode;
     const tabLogin = document.getElementById('auth-tab-login');
@@ -1088,9 +1247,6 @@ function toggleAuthMode() {
     switchAuthTab(authModalMode === 'login' ? 'register' : 'login');
 }
 
-/**
- * Maneja el envío del formulario de Login / Registro a Supabase Auth.
- */
 async function handleAuthSubmit(event) {
     event.preventDefault();
 
@@ -1168,9 +1324,6 @@ async function handleAuthSubmit(event) {
     }
 }
 
-/**
- * Cierre de sesión seguro en Supabase.
- */
 async function handleSignOut() {
     try {
         await window.botanikaSupabase.signOut();
@@ -1185,9 +1338,6 @@ async function handleSignOut() {
     }
 }
 
-/**
- * Compra directa desde la Landing Page con ruta protegida.
- */
 function handleDirectBuy(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
@@ -1215,7 +1365,7 @@ function handleDirectBuy(productId) {
 }
 
 // =============================================================================
-// PROCESO DE PAGO SEGURO CON MERCADO PAGO Y ÓRDENES EN SUPABASE
+// MERCADO PAGO Y ÓRDENES EN SUPABASE
 // =============================================================================
 
 function getApiBaseUrl() {
@@ -1228,9 +1378,6 @@ function getApiBaseUrl() {
     return isLocal ? 'http://localhost:3000' : '';
 }
 
-/**
- * Inicia el flujo de pago con Mercado Pago creando la orden en Supabase.
- */
 async function handleMercadoPagoPayment() {
     if (cart.length === 0) {
         showToast('Tu carrito está vacío.', 'error');
@@ -1288,7 +1435,6 @@ async function handleMercadoPagoPayment() {
         });
 
         lastOrderId = supabaseOrder.id;
-        console.log('✅ [Supabase] Orden creada exitosamente:', supabaseOrder.id);
 
         if (btn) {
             btn.innerHTML = `
@@ -1360,10 +1506,6 @@ async function handleMercadoPagoPayment() {
     }
 }
 
-// =============================================================================
-// DETECCIÓN DE RETORNO TRAS EL PAGO
-// =============================================================================
-
 async function handlePaymentReturnAndInit() {
     const params = new URLSearchParams(window.location.search);
     const status = params.get('status') || params.get('collection_status');
@@ -1384,10 +1526,7 @@ async function handlePaymentReturnAndInit() {
         if (lastOrderId) {
             try {
                 await window.botanikaSupabase.updateOrderStatus(lastOrderId, 'aprobado', paymentId);
-                console.log('✅ Orden actualizada a "aprobado" en Supabase');
-            } catch (e) {
-                console.warn('No se pudo actualizar estado en Supabase:', e);
-            }
+            } catch (e) {}
         }
         navigateTo('success');
     } else if (status === 'failure' || status === 'rejected') {
@@ -1419,6 +1558,7 @@ function renderView() {
     switch (currentView) {
         case 'home':
             main.innerHTML = renderHome();
+            initHeroParallax();
             break;
         case 'catalog':
             main.innerHTML = renderCatalog();
@@ -1441,6 +1581,7 @@ function renderView() {
             break;
         default:
             main.innerHTML = renderHome();
+            initHeroParallax();
     }
 
     if (typeof lucide !== 'undefined') {
@@ -1450,17 +1591,20 @@ function renderView() {
 }
 
 // =============================================================================
-// LANDING PAGE CON HERO SPLINE, BENTO GRID Y CONFIGURADOR 3D
+// LANDING PAGE CON HERO 2D ELEGANTE Y CONFIGURADOR 2D
 // =============================================================================
 
 function renderHome() {
-    const isReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const activeFinish = POT_FINISHES[configuratorState.finish];
+    const activePlant = POT_PLANTS[configuratorState.plant];
+    const activeSize = POT_SIZES[configuratorState.size];
+    const currentConfigPrice = calculateConfigPrice();
 
     return `
         <!-- =================================================================== -->
-        <!-- SECCIÓN 2: HERO CON SPLINE 3D & FALLBACK DE ALTO RENDIMIENTO        -->
+        <!-- SECCIÓN 2: HERO 2D CON COMPOSICIÓN EDITORIAL Y PARALLAX SUAVE       -->
         <!-- =================================================================== -->
-        <section id="landing-hero" class="relative bg-gradient-to-b from-botanika-100 via-botanika-50 to-botanika-50 overflow-hidden py-12 md:py-20 border-b border-botanika-200">
+        <section id="landing-hero" class="relative bg-gradient-to-b from-botanika-100 via-botanika-50 to-botanika-50 overflow-hidden py-14 md:py-24 border-b border-botanika-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
                 <div class="lg:col-span-6 space-y-6 reveal-on-scroll">
@@ -1475,7 +1619,7 @@ function renderHome() {
                     </h1>
 
                     <p class="text-botanika-700 text-base sm:text-lg max-w-xl leading-relaxed">
-                        Curamos plantas de interior aclimatadas en vivero y torneamos macetas artesanales en terracota y cerámica. Envíos climatizados en 48hs con garantía de reposición.
+                        Curamos plantas de interior aclimatadas en vivero y torneamos macetas artesanales en barro y gres cerámico. Envíos climatizados en 48hs con garantía de reposición.
                     </p>
 
                     <!-- Acciones principales -->
@@ -1485,8 +1629,8 @@ function renderHome() {
                             <i data-lucide="arrow-right" class="w-4 h-4"></i>
                         </button>
                         <button onclick="goToLandingSection('configurador')" class="btn-secondary py-4 px-8 text-base flex items-center justify-center space-x-2">
-                            <i data-lucide="box" class="w-4 h-4 text-botanika-terracota"></i>
-                            <span>Armá tu Maceta 3D</span>
+                            <i data-lucide="palette" class="w-4 h-4 text-botanika-terracota"></i>
+                            <span>Armá tu Maceta</span>
                         </button>
                     </div>
 
@@ -1507,40 +1651,42 @@ function renderHome() {
                     </div>
                 </div>
 
-                <!-- Visor 3D Spline con Fallback fluido -->
+                <!-- Composición 2D con Sombras Suaves y Parallax al Mouse -->
                 <div class="lg:col-span-6 relative flex justify-center reveal-on-scroll stagger-2">
-                    <div class="spline-hero-container w-full" id="hero-spline-box">
-                        ${!isReducedMotion ? `
-                            <spline-viewer 
-                                id="spline-hero-viewer"
-                                url="${SPLINE_HERO_URL}" 
-                                loading="lazy"
-                                hint="Arrastra con el ratón para rotar la planta 3D"
-                                onload="document.getElementById('hero-spline-box')?.classList.add('spline-loaded')">
-                            </spline-viewer>
-                        ` : ''}
+                    <div class="hero-plant-stage" id="hero-plant-stage">
+                        
+                        <!-- Aura de luz difuminada orgánica -->
+                        <div class="hero-aura-glow"></div>
 
-                        <!-- Capa de Fallback (visible mientras carga Spline o en modo reduced-motion) -->
-                        <div class="spline-fallback-layer">
-                            <div class="relative w-full h-full p-6 flex flex-col justify-between">
-                                <div class="flex justify-between items-center z-10">
-                                    <span class="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-semibold text-botanika-800 shadow-sm border border-botanika-200 flex items-center space-x-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                        <span>3D Interactivo Spline</span>
-                                    </span>
-                                    <span class="text-[11px] text-botanika-700 bg-white/70 backdrop-blur-md px-2.5 py-1 rounded-full">Rotar 360°</span>
-                                </div>
-                                
-                                <img src="https://images.unsplash.com/photo-1545241047-6083a3684587?auto=format&fit=crop&q=80&w=800" 
-                                    alt="Ficus Lyrata en Maceta Artesanal Botanika" 
-                                    class="absolute inset-0 w-full h-full object-cover">
+                        <!-- Hojas botánicas decorativas en SVG -->
+                        <svg class="floating-leaf leaf-top-right" viewBox="0 0 100 100" fill="none">
+                            <path d="M 10 90 C 10 40 40 10 90 10 C 90 60 60 90 10 90 Z" fill="#526E5D"/>
+                            <path d="M 10 90 Q 50 50 90 10" stroke="#FAF8F5" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
 
-                                <div class="z-10 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-botanika-200 max-w-xs self-start">
-                                    <p class="text-xs font-bold text-botanika-800">Ficus Lyrata & Maceta Terracota</p>
-                                    <p class="text-[11px] text-botanika-700">Aclimatada en vivero • Lista para tu living</p>
-                                </div>
+                        <svg class="floating-leaf leaf-bottom-left" viewBox="0 0 100 100" fill="none">
+                            <path d="M 90 90 C 90 35 55 10 10 10 C 10 65 45 90 90 90 Z" fill="#D07A58"/>
+                            <path d="M 90 90 Q 50 50 10 10" stroke="#FAF8F5" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+
+                        <!-- Tarjeta principal con Parallax fluido -->
+                        <div class="hero-main-card" id="hero-parallax-card">
+                            <img src="https://images.unsplash.com/photo-1545241047-6083a3684587?auto=format&fit=crop&q=80&w=800" 
+                                alt="Ficus Lyrata en Maceta Artesanal Botanika" 
+                                loading="eager">
+                        </div>
+
+                        <!-- Tarjeta flotante "100% Climatizadas" -->
+                        <div class="hero-floating-pill">
+                            <div class="w-10 h-10 rounded-2xl bg-botanika-600 text-white flex items-center justify-center font-serif text-lg shadow-sm">
+                                🌿
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-botanika-800">100% Climatizadas</p>
+                                <p class="text-[11px] text-botanika-700">Listas para iluminar tu espacio</p>
                             </div>
                         </div>
+
                     </div>
                 </div>
 
@@ -1690,100 +1836,150 @@ function renderHome() {
         </section>
 
         <!-- =================================================================== -->
-        <!-- SECCIÓN: CONFIGURADOR "ARMÁ TU MACETA" CON SPLINE 3D                -->
+        <!-- SECCIÓN: CONFIGURADOR 2D "ARMÁ TU MACETA" (INTERACTIVO & VECTORIAL) -->
         <!-- =================================================================== -->
         <section id="landing-configurador" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
             <div class="text-center max-w-2xl mx-auto mb-16 space-y-3 reveal-on-scroll">
-                <span class="text-botanika-terracota font-semibold text-xs tracking-widest uppercase">Configurador 3D Interactivo</span>
+                <span class="text-botanika-terracota font-semibold text-xs tracking-widest uppercase">Estudio de Personalización</span>
                 <h2 class="font-serif text-3xl sm:text-4xl font-medium text-botanika-800">Armá tu Maceta de Autor</h2>
                 <p class="text-botanika-700 text-sm sm:text-base leading-relaxed">
-                    Elegí el acabado artesanal que mejor armoniza con tu ambiente. El modelo 3D responde en tiempo real a tu elección.
+                    Elegí el acabado artesanal, la escala ideal para tu rincón y la planta que le dará vida. Previsualizá el resultado al instante.
                 </p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                 
-                <!-- Visor 3D Spline para la maceta -->
-                <div class="lg:col-span-7 pot-configurator-card h-[440px] relative overflow-hidden bg-gradient-to-br from-botanika-100 to-botanika-50 reveal-on-scroll">
-                    ${!isReducedMotion ? `
-                        <spline-viewer 
-                            id="spline-configurator-viewer"
-                            url="${SPLINE_CONFIGURATOR_URL}" 
-                            loading="lazy"
-                            hint="Arrastra para inspeccionar el acabado de la maceta">
-                        </spline-viewer>
-                    ` : ''}
-
-                    <!-- Fallback / Preview dinámico si la escena está cargando -->
-                    <div class="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
-                        <img id="config-fallback-img" src="${POT_FINISHES[selectedConfigFinish].image}" 
-                            alt="Maceta de Autor" 
-                            class="max-h-[340px] w-auto object-contain rounded-2xl shadow-xl transition-all duration-300">
+                <!-- Escenario de previsualización 2D (Sin negro, sin ejes, con sombra suave) -->
+                <div class="lg:col-span-7 pot-stage-2d reveal-on-scroll">
+                    <div class="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-botanika-800 border border-botanika-200 shadow-sm flex items-center space-x-1.5 z-10">
+                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-botanika-600"></i>
+                        <span id="config-size-badge">${activeSize.label} • ${activePlant.name}</span>
                     </div>
-                    
-                    <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-botanika-800 border border-botanika-200 shadow-sm flex items-center space-x-1.5">
-                        <i data-lucide="box" class="w-3.5 h-3.5 text-botanika-terracota"></i>
-                        <span id="config-name">${POT_FINISHES[selectedConfigFinish].name}</span>
+
+                    <!-- Contenedor animado de maceta + planta -->
+                    <div class="pot-preview-wrap ${activeSize.scaleClass}" id="pot-preview-wrap">
+                        
+                        <!-- Capa Ilustración de Planta -->
+                        <div class="pot-plant-layer" id="pot-plant-container">
+                            <svg viewBox="0 0 240 200" class="w-full h-full">
+                                ${activePlant.svgPath}
+                            </svg>
+                        </div>
+
+                        <!-- Maceta Vectorial SVG Dinámica -->
+                        <div class="pot-vessel-layer">
+                            <svg viewBox="0 0 200 150" class="w-full h-full">
+                                <defs>
+                                    <linearGradient id="pot-grad-terracota" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#E48B69"/>
+                                        <stop offset="45%" stop-color="#D07A58"/>
+                                        <stop offset="100%" stop-color="#9C4C2E"/>
+                                    </linearGradient>
+                                    <linearGradient id="pot-grad-blanca" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#FFFFFF"/>
+                                        <stop offset="50%" stop-color="#F2EFE9"/>
+                                        <stop offset="100%" stop-color="#DCD6C9"/>
+                                    </linearGradient>
+                                    <linearGradient id="pot-grad-gris" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#9BA39C"/>
+                                        <stop offset="50%" stop-color="#7A827B"/>
+                                        <stop offset="100%" stop-color="#555C56"/>
+                                    </linearGradient>
+                                </defs>
+                                <path id="pot-svg-body" d="M 25 15 L 45 135 C 47 142 55 146 65 146 L 135 146 C 145 146 153 142 155 135 L 175 15 Z" fill="${activeFinish.bodyGradient}" />
+                                <ellipse id="pot-svg-rim" cx="100" cy="15" rx="76" ry="12" fill="${activeFinish.rimColor}" />
+                                <ellipse id="pot-svg-inner" cx="100" cy="15" rx="68" ry="9" fill="${activeFinish.innerColor}" />
+                                <path id="pot-svg-highlight" d="M 40 25 L 55 130 C 56 132 58 134 60 134 L 75 134 L 60 25 Z" fill="white" opacity="${activeFinish.specularOpacity}" />
+                            </svg>
+                        </div>
+
+                        <!-- Sombra de contacto suave -->
+                        <div class="pot-contact-shadow"></div>
                     </div>
                 </div>
 
-                <!-- Panel de Selección de Acabados & Acción -->
-                <div class="lg:col-span-5 bg-white p-8 rounded-3xl border border-botanika-200 shadow-card space-y-6 reveal-on-scroll stagger-2">
+                <!-- Panel de Configuración & Acciones -->
+                <div class="lg:col-span-5 bg-white p-7 sm:p-8 rounded-3xl border border-botanika-200 shadow-card space-y-6 reveal-on-scroll stagger-2">
+                    
+                    <!-- 1. Acabado -->
                     <div>
-                        <span class="text-xs font-semibold text-botanika-600 uppercase tracking-widest">Paso 1: Seleccioná el Acabado</span>
-                        <h3 class="font-serif text-2xl font-medium text-botanika-800 mt-1">Material & Terminación</h3>
-                        <p id="config-desc" class="text-xs text-botanika-700 mt-2 leading-relaxed">
-                            ${POT_FINISHES[selectedConfigFinish].texture}
-                        </p>
+                        <div class="flex justify-between items-baseline mb-2">
+                            <span class="text-xs font-semibold text-botanika-600 uppercase tracking-widest">1. Material & Acabado</span>
+                            <span id="config-name" class="font-serif font-semibold text-sm text-botanika-800">${activeFinish.name}</span>
+                        </div>
+                        <div class="space-y-2">
+                            ${Object.keys(POT_FINISHES).map(k => {
+                                const f = POT_FINISHES[k];
+                                const isSelected = k === configuratorState.finish;
+                                return `
+                                    <button id="finish-btn-${k}" onclick="selectPotFinish('${k}')" class="w-full flex items-center justify-between p-3 rounded-2xl ${isSelected ? 'border-2 border-botanika-600 bg-botanika-50' : 'border border-botanika-300 hover:border-botanika-600 bg-white'} text-left transition">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="w-6 h-6 rounded-full border border-black/10 flex-shrink-0" style="background-color: ${f.hex};"></span>
+                                            <div>
+                                                <p class="font-medium text-xs text-botanika-800">${f.name}</p>
+                                                <p class="text-[10px] text-botanika-700">${k === 'terracota' ? 'Porosa natural' : k === 'blanca' ? 'Esmalte satinado' : 'Tacto mineral mate'}</p>
+                                            </div>
+                                        </div>
+                                        <span class="font-serif font-bold text-xs text-botanika-800">$${f.basePrice.toLocaleString()}</span>
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
                     </div>
 
-                    <!-- Botones de selección de acabado -->
-                    <div class="space-y-3">
-                        <button id="finish-btn-terracota" onclick="selectPotFinish('terracota')" class="w-full flex items-center justify-between p-3.5 rounded-2xl border-2 border-botanika-600 bg-botanika-50 text-left transition">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-6 h-6 rounded-full border border-black/10 flex-shrink-0" style="background-color: #D07A58;"></span>
-                                <div>
-                                    <p class="font-medium text-sm text-botanika-800">Terracota Artesanal</p>
-                                    <p class="text-[11px] text-botanika-700">Barro natural de alta porosidad</p>
-                                </div>
-                            </div>
-                            <span class="font-serif font-bold text-sm text-botanika-800">$12,500</span>
-                        </button>
+                    <!-- 2. Tamaño -->
+                    <div>
+                        <div class="flex justify-between items-baseline mb-2">
+                            <span class="text-xs font-semibold text-botanika-600 uppercase tracking-widest">2. Tamaño de Maceta</span>
+                            <span class="text-[11px] text-botanika-700">Ajuste de precio incluido</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            ${Object.keys(POT_SIZES).map(s => {
+                                const sz = POT_SIZES[s];
+                                const isSelected = s === configuratorState.size;
+                                const deltaLabel = sz.priceDelta === 0 ? 'Estándar' : sz.priceDelta > 0 ? `+$${sz.priceDelta.toLocaleString()}` : `-$${Math.abs(sz.priceDelta).toLocaleString()}`;
+                                return `
+                                    <button id="size-btn-${s}" onclick="selectPotSize('${s}')" class="py-2.5 px-3 rounded-xl ${isSelected ? 'border-2 border-botanika-600 bg-botanika-600 text-white font-semibold' : 'border border-botanika-300 hover:border-botanika-600 bg-white text-botanika-800'} text-xs text-center transition">
+                                        <div class="font-bold">${sz.short}</div>
+                                        <div class="text-[10px] opacity-80">${deltaLabel}</div>
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
 
-                        <button id="finish-btn-blanca" onclick="selectPotFinish('blanca')" class="w-full flex items-center justify-between p-3.5 rounded-2xl border border-botanika-300 hover:border-botanika-600 bg-white text-left transition">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-6 h-6 rounded-full border border-black/10 flex-shrink-0" style="background-color: #F7F6F2;"></span>
-                                <div>
-                                    <p class="font-medium text-sm text-botanika-800">Cerámica Blanca Esmaltada</p>
-                                    <p class="text-[11px] text-botanika-700">Acabado satinado suave</p>
-                                </div>
-                            </div>
-                            <span class="font-serif font-bold text-sm text-botanika-800">$14,900</span>
-                        </button>
-
-                        <button id="finish-btn-gris" onclick="selectPotFinish('gris')" class="w-full flex items-center justify-between p-3.5 rounded-2xl border border-botanika-300 hover:border-botanika-600 bg-white text-left transition">
-                            <div class="flex items-center space-x-3">
-                                <span class="w-6 h-6 rounded-full border border-black/10 flex-shrink-0" style="background-color: #7A827B;"></span>
-                                <div>
-                                    <p class="font-medium text-sm text-botanika-800">Gris Cálido Mineral</p>
-                                    <p class="text-[11px] text-botanika-700">Tacto sedoso contemporáneo</p>
-                                </div>
-                            </div>
-                            <span class="font-serif font-bold text-sm text-botanika-800">$15,200</span>
-                        </button>
+                    <!-- 3. Planta Interior Acompañante -->
+                    <div>
+                        <span class="text-xs font-semibold text-botanika-600 uppercase tracking-widest block mb-2">3. Planta Incluida</span>
+                        <div class="grid grid-cols-3 gap-2">
+                            ${Object.keys(POT_PLANTS).map(p => {
+                                const pl = POT_PLANTS[p];
+                                const isSelected = p === configuratorState.plant;
+                                return `
+                                    <button id="plant-btn-${p}" onclick="selectPotPlant('${p}')" class="p-2.5 rounded-xl ${isSelected ? 'border-2 border-botanika-600 bg-botanika-50 font-semibold text-botanika-800' : 'border border-botanika-300 hover:border-botanika-600 bg-white text-botanika-700'} text-xs text-left transition flex flex-col justify-between">
+                                        <span class="truncate">${pl.name.split(' ')[0]}</span>
+                                        <span class="text-[10px] text-botanika-600 mt-1">✓ Incluida</span>
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
                     </div>
 
                     <!-- Precio y Botón al Carrito Existente -->
                     <div class="pt-4 border-t border-botanika-200 space-y-4">
                         <div class="flex items-baseline justify-between">
-                            <span class="text-xs text-botanika-700">Precio configurado:</span>
-                            <span id="config-price" class="font-serif text-3xl font-bold text-botanika-800">$12,500</span>
+                            <div>
+                                <span class="text-xs text-botanika-700 block">Precio final configurado:</span>
+                                <span class="text-[11px] text-emerald-700 font-medium">Maceta + Planta + Sustrato listo</span>
+                            </div>
+                            <span id="config-price" class="font-serif text-3xl font-bold text-botanika-800">$${currentConfigPrice.toLocaleString()}</span>
                         </div>
                         <button onclick="addCustomPotToCart()" class="btn-primary w-full py-4 text-sm font-semibold flex items-center justify-center space-x-2">
                             <i data-lucide="shopping-bag" class="w-4 h-4"></i>
-                            <span>Agregar al Carrito Existente</span>
+                            <span>Agregar al Carrito</span>
                         </button>
                     </div>
+
                 </div>
 
             </div>
@@ -1814,7 +2010,6 @@ function renderHome() {
                                 <img src="${p.image}" alt="${p.name}" loading="lazy">
                                 ${p.badge ? `<span class="absolute top-3 left-3 bg-botanika-800/90 backdrop-blur-md text-white text-[10px] uppercase font-semibold px-2.5 py-1 rounded-full shadow-sm">${p.badge}</span>` : ''}
                                 
-                                <!-- Acciones Flotantes (Quick View + Wishlist) -->
                                 <div class="product-actions-overlay" onclick="event.stopPropagation();">
                                     <button onclick="toggleWishlist(${p.id})" class="btn-action-round ${isInWishlist(p.id) ? 'active' : ''}" title="Guardar en favoritos" aria-label="Favorito">
                                         <i data-lucide="heart" class="w-4 h-4 ${isInWishlist(p.id) ? 'fill-botanika-terracota text-botanika-terracota' : ''}"></i>
@@ -2048,7 +2243,6 @@ function renderProductCard(p) {
 
 function getFilteredProducts() {
     return products.filter(p => {
-        // Filtro texto búsqueda
         if (catalogFilter.search) {
             const query = catalogFilter.search.toLowerCase();
             const matchesName = p.name.toLowerCase().includes(query);
@@ -2057,17 +2251,14 @@ function getFilteredProducts() {
             if (!matchesName && !matchesDesc && !matchesCat) return false;
         }
 
-        // Filtro categoría
         if (catalogFilter.category !== 'Todas' && p.category !== catalogFilter.category) {
             return false;
         }
 
-        // Filtro luz
         if (catalogFilter.light !== 'Todas' && p.light !== catalogFilter.light) {
             return false;
         }
 
-        // Filtro precio máximo
         if (p.price > catalogFilter.maxPrice) {
             return false;
         }
@@ -2739,11 +2930,18 @@ async function loadUserOrdersAsync() {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
+function handleNewsletterSubmit(e) {
+    e.preventDefault();
+    const input = document.getElementById('newsletter-email');
+    if (!input || !input.value) return;
+    showToast('¡Gracias por unirte! Usá el código BOTANIKA10 para 10% OFF 🌿');
+    input.value = '';
+}
+
 // =============================================================================
 // INICIALIZACIÓN DE LA APLICACIÓN
 // =============================================================================
 
-// Listener para cerrar modales con tecla ESC o clic en backdrop
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeAuthModal();
@@ -2751,6 +2949,7 @@ document.addEventListener('keydown', (e) => {
         closeWishlistDrawer();
         closeQuickView();
         closeQuizModal();
+        toggleMobileMenu(false);
     }
 });
 
@@ -2765,7 +2964,6 @@ document.addEventListener('click', (e) => {
     if (e.target === quizModal) closeQuizModal();
 });
 
-// Listener de cambios de autenticación en Supabase
 if (window.botanikaSupabase) {
     window.botanikaSupabase.onAuthStateChange((event, session) => {
         currentUser = session?.user || null;

@@ -4,6 +4,7 @@
  * =============================================================================
  * Paleta biofílica, tipografía editorial fluida, elevaciones suaves,
  * glassmorphism sutil, animaciones de micro-interacción y accesibilidad WCAG AA.
+ * Cero dependencias externas 3D.
  * =============================================================================
  */
 
@@ -53,8 +54,8 @@
     --surface-border-subtle: rgba(62, 84, 71, 0.06);
 
     /* Glassmorphism */
-    --glass-bg: rgba(250, 248, 245, 0.85);
-    --glass-bg-card: rgba(255, 255, 255, 0.75);
+    --glass-bg: rgba(250, 248, 245, 0.88);
+    --glass-bg-card: rgba(255, 255, 255, 0.85);
     --glass-border: rgba(255, 255, 255, 0.8);
     --glass-blur: blur(16px);
 
@@ -101,18 +102,6 @@
     --duration-slow: 500ms;
 }
 
-/* Modo Oscuro Sutil (Opcional / Automático por preferencia) */
-@media (prefers-color-scheme: dark) {
-    :root.dark-theme {
-        --surface-bg: #141A17;
-        --surface-card: #1D2520;
-        --surface-border: rgba(199, 216, 199, 0.12);
-        --color-charcoal: #FAF8F5;
-        --color-charcoal-light: #C7D8C7;
-        --glass-bg: rgba(20, 26, 23, 0.88);
-    }
-}
-
 /* -----------------------------------------------------------------------------
    RESET & ESTILOS BASE
    ----------------------------------------------------------------------------- */
@@ -133,6 +122,10 @@ body {
     font-family: var(--font-sans);
     line-height: 1.6;
     overflow-x: hidden;
+}
+
+body.menu-open {
+    overflow: hidden !important;
 }
 
 /* Scrollbar estética */
@@ -163,6 +156,83 @@ body {
 }
 
 /* -----------------------------------------------------------------------------
+   NAVBAR LAYOUT OPTIMIZADO (Sin colisiones, white-space: nowrap)
+   ----------------------------------------------------------------------------- */
+.navbar-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    height: 5rem;
+    width: 100%;
+}
+
+.navbar-links {
+    display: none;
+    align-items: center;
+    gap: 1.75rem;
+    white-space: nowrap;
+}
+
+@media (min-width: 1101px) {
+    .navbar-links {
+        display: flex;
+    }
+    .mobile-menu-trigger {
+        display: none !important;
+    }
+}
+
+@media (max-width: 1100px) {
+    .navbar-links {
+        display: none !important;
+    }
+    .mobile-menu-trigger {
+        display: inline-flex !important;
+    }
+}
+
+.nav-link {
+    color: var(--color-charcoal);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    padding-bottom: 0.25rem;
+    border-bottom: 2px solid transparent;
+    transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    cursor: pointer;
+}
+
+.nav-link:hover {
+    color: var(--color-salvia-600);
+    border-color: var(--color-salvia-600);
+}
+
+.nav-link-badge {
+    background: var(--color-terracota-50);
+    color: var(--color-terracota-600);
+    font-weight: 600;
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-terracota-200);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all var(--duration-fast) ease;
+    cursor: pointer;
+}
+
+.nav-link-badge:hover {
+    background: var(--color-terracota-100);
+    border-color: var(--color-terracota-400);
+    transform: translateY(-1px);
+}
+
+/* -----------------------------------------------------------------------------
    MICRO-INTERACCIONES EN BOTONES Y ACCIONES
    ----------------------------------------------------------------------------- */
 .btn-primary {
@@ -181,6 +251,7 @@ body {
     gap: 0.5rem;
     border: none;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .btn-primary:hover {
@@ -208,6 +279,7 @@ body {
     justify-content: center;
     gap: 0.5rem;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .btn-secondary:hover {
@@ -231,12 +303,207 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    white-space: nowrap;
 }
 
 .btn-terracota:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 22px -4px rgba(208, 122, 88, 0.45);
     background: linear-gradient(135deg, var(--color-terracota-600) 0%, var(--color-terracota-700) 100%);
+}
+
+/* Badge del carrito con pulso */
+.badge-bounce {
+    animation: badge-pulse 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badge-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.35); }
+    100% { transform: scale(1); }
+}
+
+/* -----------------------------------------------------------------------------
+   HERO 2D ELEGANTE CON PARALLAX Y HOJAS FLOTANTES
+   ----------------------------------------------------------------------------- */
+.hero-plant-stage {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    height: 520px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-aura-glow {
+    position: absolute;
+    width: 380px;
+    height: 380px;
+    border-radius: var(--radius-full);
+    background: radial-gradient(circle, rgba(199, 216, 199, 0.55) 0%, rgba(244, 236, 226, 0.35) 60%, transparent 80%);
+    filter: blur(40px);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.hero-main-card {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 440px;
+    height: 480px;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: #FFFFFF;
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--shadow-card-hover);
+    transition: transform 120ms ease-out;
+    will-change: transform;
+}
+
+.hero-main-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Hojas decorativas flotantes en SVG */
+.floating-leaf {
+    position: absolute;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0.85;
+    filter: drop-shadow(0 8px 16px rgba(31, 42, 35, 0.12));
+}
+
+.leaf-top-right {
+    top: -15px;
+    right: -25px;
+    width: 90px;
+    height: 90px;
+    animation: float-leaf-1 9s ease-in-out infinite alternate;
+}
+
+.leaf-bottom-left {
+    bottom: 20px;
+    left: -35px;
+    width: 110px;
+    height: 110px;
+    animation: float-leaf-2 11s ease-in-out infinite alternate;
+}
+
+@keyframes float-leaf-1 {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(-16px) rotate(8deg); }
+}
+
+@keyframes float-leaf-2 {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(18px) rotate(-6deg); }
+}
+
+/* Tarjeta flotante "100% Climatizadas" */
+.hero-floating-pill {
+    position: absolute;
+    bottom: -18px;
+    left: -20px;
+    z-index: 4;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-lg);
+    padding: 0.85rem 1.25rem;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    transition: transform var(--duration-fast) ease;
+}
+
+.hero-floating-pill:hover {
+    transform: translateY(-2px);
+}
+
+/* -----------------------------------------------------------------------------
+   CONFIGURADOR 2D "ARMÁ TU MACETA"
+   ----------------------------------------------------------------------------- */
+.pot-stage-2d {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    background: radial-gradient(circle at 50% 45%, #FFFFFF 0%, #F5F1E8 65%, #EDE6DA 100%);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 1.5rem;
+}
+
+.pot-preview-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    height: 340px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    transition: transform 400ms var(--ease-out-expo);
+}
+
+/* Escalas por tamaño */
+.pot-scale-s { transform: scale(0.84); }
+.pot-scale-m { transform: scale(1.0); }
+.pot-scale-l { transform: scale(1.16); }
+
+/* Capa de planta dentro de la maceta */
+.pot-plant-layer {
+    position: absolute;
+    bottom: 120px;
+    width: 250px;
+    height: 230px;
+    z-index: 2;
+    transition: opacity 350ms ease, transform 350ms var(--ease-out-expo);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.pot-plant-layer img, .pot-plant-layer svg {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 14px rgba(31, 42, 35, 0.16));
+}
+
+/* Capa de la maceta vectorial SVG */
+.pot-vessel-layer {
+    position: relative;
+    z-index: 3;
+    width: 200px;
+    height: 150px;
+    transition: filter 400ms ease;
+    filter: drop-shadow(0 14px 20px rgba(31, 42, 35, 0.18));
+}
+
+/* Sombra de contacto realista */
+.pot-contact-shadow {
+    position: absolute;
+    bottom: 24px;
+    width: 210px;
+    height: 24px;
+    border-radius: var(--radius-full);
+    background: radial-gradient(ellipse at center, rgba(31, 42, 35, 0.35) 0%, rgba(31, 42, 35, 0.08) 60%, transparent 80%);
+    filter: blur(6px);
+    z-index: 1;
+    transition: width 400ms ease, opacity 400ms ease;
 }
 
 /* -----------------------------------------------------------------------------
@@ -284,7 +551,6 @@ body {
     transform: scale(1.06);
 }
 
-/* Action Overlay (Quick View & Wishlist) */
 .product-actions-overlay {
     position: absolute;
     top: 0.75rem;
@@ -299,9 +565,9 @@ body {
     width: 2.35rem;
     height: 2.35rem;
     border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.94);
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.06);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -325,7 +591,7 @@ body {
 }
 
 /* -----------------------------------------------------------------------------
-   BENTO GRID (Sección Beneficios de Vanguardia)
+   BENTO GRID (Beneficios)
    ----------------------------------------------------------------------------- */
 .bento-grid {
     display: grid;
@@ -375,58 +641,6 @@ body {
 }
 
 /* -----------------------------------------------------------------------------
-   SPLINE 3D VIEWER CONTAINER & FALLBACKS
-   ----------------------------------------------------------------------------- */
-.spline-hero-container {
-    position: relative;
-    width: 100%;
-    height: 480px;
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    background: linear-gradient(135deg, rgba(244, 247, 244, 0.7) 0%, rgba(248, 236, 230, 0.5) 100%);
-    border: 1px solid var(--surface-border);
-    box-shadow: var(--shadow-card);
-}
-
-@media (min-width: 1024px) {
-    .spline-hero-container {
-        height: 540px;
-    }
-}
-
-spline-viewer {
-    width: 100%;
-    height: 100%;
-    display: block;
-    outline: none;
-}
-
-.spline-fallback-layer {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1;
-    pointer-events: none;
-    transition: opacity var(--duration-slow) ease;
-}
-
-.spline-loaded .spline-fallback-layer {
-    opacity: 0;
-    pointer-events: none;
-}
-
-/* Configurador 3D */
-.pot-configurator-card {
-    background: #FFFFFF;
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--surface-border);
-    box-shadow: var(--shadow-card);
-    overflow: hidden;
-}
-
-/* -----------------------------------------------------------------------------
    MINI-CARRITO DRAWER LATERAL & OVERLAYS
    ----------------------------------------------------------------------------- */
 .drawer-backdrop {
@@ -465,13 +679,35 @@ spline-viewer {
     transform: translateX(0);
 }
 
+/* Mobile Nav Drawer */
+.mobile-drawer-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 85%;
+    max-width: 380px;
+    background: #FFFFFF;
+    z-index: 70;
+    box-shadow: 10px 0 35px -5px rgba(31, 42, 35, 0.18);
+    transform: translateX(-100%);
+    transition: transform var(--duration-normal) var(--ease-out-expo);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.mobile-drawer-panel.active {
+    transform: translateX(0);
+}
+
 /* -----------------------------------------------------------------------------
-   SKELETON LOADERS & REVEAL ANIMATIONS
+   SKELETON LOADERS & REVEAL ANIMATIONS (Single-shot 60fps)
    ----------------------------------------------------------------------------- */
 .skeleton {
     background: linear-gradient(90deg, #EFECE6 25%, #F7F6F2 50%, #EFECE6 75%);
     background-size: 200% 100%;
-    animation: skeleton-loading 1.5s infinite;
+    animation: skeleton-loading 1.4s infinite;
     border-radius: var(--radius-sm);
 }
 
@@ -482,8 +718,9 @@ spline-viewer {
 
 .reveal-on-scroll {
     opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 650ms var(--ease-out-expo), transform 650ms var(--ease-out-expo);
+    transform: translateY(20px);
+    transition: opacity 550ms var(--ease-out-expo), transform 550ms var(--ease-out-expo);
+    will-change: opacity, transform;
 }
 
 .reveal-on-scroll.revealed {
@@ -491,13 +728,12 @@ spline-viewer {
     transform: translateY(0);
 }
 
-/* Stagger delay helper */
-.stagger-1 { transition-delay: 60ms; }
-.stagger-2 { transition-delay: 120ms; }
-.stagger-3 { transition-delay: 180ms; }
-.stagger-4 { transition-delay: 240ms; }
+.stagger-1 { transition-delay: 50ms; }
+.stagger-2 { transition-delay: 100ms; }
+.stagger-3 { transition-delay: 150ms; }
+.stagger-4 { transition-delay: 200ms; }
 
-/* Respeto estricto por Reduced Motion (Accesibilidad) */
+/* Respeto estricto por Reduced Motion (Accesibilidad WCAG AA) */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -508,5 +744,11 @@ spline-viewer {
     .reveal-on-scroll {
         opacity: 1 !important;
         transform: none !important;
+    }
+    .hero-main-card {
+        transform: none !important;
+    }
+    .floating-leaf {
+        animation: none !important;
     }
 }
