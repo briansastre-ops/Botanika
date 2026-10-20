@@ -1,30 +1,512 @@
 /**
- * Botanika & Co. — Estilos Globales Complementarios
- * Tipografía, desplazamiento suave y personalización de barra de scroll.
+ * =============================================================================
+ * BOTANIKA STUDIO & PLANTAS — SISTEMA DE DISEÑO OFICIAL (UI/UX DESIGN SYSTEM)
+ * =============================================================================
+ * Paleta biofílica, tipografía editorial fluida, elevaciones suaves,
+ * glassmorphism sutil, animaciones de micro-interacción y accesibilidad WCAG AA.
+ * =============================================================================
  */
 
-/* Import Inter font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap');
 
-/* Smooth scrolling behavior */
-html {
-    scroll-behavior: smooth;
+:root {
+    /* -------------------------------------------------------------------------
+       1. TOKENS DE COLOR (Paleta Curada de Tendencia)
+       ------------------------------------------------------------------------- */
+    /* Salvia / Verde Botánico (Principal) */
+    --color-salvia-50: #F4F7F4;
+    --color-salvia-100: #E4ECE4;
+    --color-salvia-200: #C7D8C7;
+    --color-salvia-300: #9EBA9F;
+    --color-salvia-400: #749A76;
+    --color-salvia-500: #526E5D; /* Principal marca */
+    --color-salvia-600: #3E5447;
+    --color-salvia-700: #2E3E34;
+    --color-salvia-800: #1F2A23;
+    --color-salvia-900: #131A16;
+
+    /* Terracota Artesanal (Acento Cálido) */
+    --color-terracota-50: #FDF7F4;
+    --color-terracota-100: #F8ECE6;
+    --color-terracota-200: #F1D7CA;
+    --color-terracota-300: #E4B5A0;
+    --color-terracota-400: #D89476;
+    --color-terracota-500: #D07A58; /* Principal acento */
+    --color-terracota-600: #B85F3D;
+    --color-terracota-700: #974B2F;
+    --color-terracota-800: #763A25;
+
+    /* Crema, Arena & Superficies Neutras */
+    --color-cream-50: #FAF8F5;
+    --color-cream-100: #F3EFE8;
+    --color-cream-200: #E6DFD4;
+    --color-cream-300: #D7CCBE;
+    --color-sand: #DFD5C6;
+    --color-charcoal: #1E2522;
+    --color-charcoal-light: #4A5550;
+
+    /* Superficies y Elevaciones */
+    --surface-bg: var(--color-cream-50);
+    --surface-card: #FFFFFF;
+    --surface-elevated: #FFFFFF;
+    --surface-border: rgba(62, 84, 71, 0.12);
+    --surface-border-subtle: rgba(62, 84, 71, 0.06);
+
+    /* Glassmorphism */
+    --glass-bg: rgba(250, 248, 245, 0.85);
+    --glass-bg-card: rgba(255, 255, 255, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.8);
+    --glass-blur: blur(16px);
+
+    /* -------------------------------------------------------------------------
+       2. TIPOGRAFÍA Y ESCALA FLUIDA (Clamp)
+       ------------------------------------------------------------------------- */
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-serif: 'Playfair Display', 'Fraunces', Georgia, serif;
+
+    --font-size-xs: clamp(0.72rem, 0.68rem + 0.2vw, 0.8125rem);
+    --font-size-sm: clamp(0.85rem, 0.81rem + 0.2vw, 0.9375rem);
+    --font-size-base: clamp(0.975rem, 0.925rem + 0.25vw, 1.0625rem);
+    --font-size-lg: clamp(1.1rem, 1.02rem + 0.4vw, 1.25rem);
+    --font-size-xl: clamp(1.28rem, 1.15rem + 0.6vw, 1.5rem);
+    --font-size-2xl: clamp(1.55rem, 1.35rem + 0.9vw, 1.95rem);
+    --font-size-3xl: clamp(1.9rem, 1.6rem + 1.4vw, 2.5rem);
+    --font-size-4xl: clamp(2.35rem, 1.95rem + 2vw, 3.25rem);
+    --font-size-5xl: clamp(2.9rem, 2.3rem + 2.8vw, 4.25rem);
+
+    /* -------------------------------------------------------------------------
+       3. SOMBRAS Y RADIOS
+       ------------------------------------------------------------------------- */
+    --radius-xs: 6px;
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+    --radius-full: 9999px;
+
+    --shadow-subtle: 0 2px 8px -2px rgba(31, 42, 35, 0.04), 0 1px 3px 0 rgba(31, 42, 35, 0.02);
+    --shadow-card: 0 10px 25px -8px rgba(31, 42, 35, 0.06), 0 3px 8px -2px rgba(31, 42, 35, 0.03);
+    --shadow-card-hover: 0 20px 40px -12px rgba(31, 42, 35, 0.12), 0 6px 14px -3px rgba(31, 42, 35, 0.05);
+    --shadow-drawer: -10px 0 35px -5px rgba(31, 42, 35, 0.18);
+    --shadow-glow-salvia: 0 0 40px -10px rgba(82, 110, 93, 0.35);
+    --shadow-glow-terracota: 0 0 35px -8px rgba(208, 122, 88, 0.3);
+
+    /* -------------------------------------------------------------------------
+       4. ANIMACIONES Y TRANSICIONES
+       ------------------------------------------------------------------------- */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --duration-fast: 180ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
 }
 
-/* Custom scrollbar styling for clean aesthetic */
+/* Modo Oscuro Sutil (Opcional / Automático por preferencia) */
+@media (prefers-color-scheme: dark) {
+    :root.dark-theme {
+        --surface-bg: #141A17;
+        --surface-card: #1D2520;
+        --surface-border: rgba(199, 216, 199, 0.12);
+        --color-charcoal: #FAF8F5;
+        --color-charcoal-light: #C7D8C7;
+        --glass-bg: rgba(20, 26, 23, 0.88);
+    }
+}
+
+/* -----------------------------------------------------------------------------
+   RESET & ESTILOS BASE
+   ----------------------------------------------------------------------------- */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    background-color: var(--surface-bg);
+    color: var(--color-charcoal);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Scrollbar estética */
 ::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #F7F6F2;
+    background: var(--color-cream-100);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #DED8CC;
-    border-radius: 4px;
+    background: var(--color-salvia-300);
+    border-radius: var(--radius-full);
+    border: 2px solid var(--color-cream-100);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #C7BDAB;
+    background: var(--color-salvia-500);
+}
+
+/* Foco accesible WCAG AA */
+:focus-visible {
+    outline: 2px solid var(--color-salvia-500);
+    outline-offset: 3px;
+    border-radius: var(--radius-xs);
+}
+
+/* -----------------------------------------------------------------------------
+   MICRO-INTERACCIONES EN BOTONES Y ACCIONES
+   ----------------------------------------------------------------------------- */
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-salvia-500) 0%, var(--color-salvia-600) 100%);
+    color: #FFFFFF;
+    font-weight: 600;
+    padding: 0.875rem 1.75rem;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 14px -3px rgba(82, 110, 93, 0.4);
+    transition: transform var(--duration-fast) var(--ease-out-expo),
+                box-shadow var(--duration-fast) var(--ease-out-expo),
+                background var(--duration-normal) ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -4px rgba(82, 110, 93, 0.45);
+    background: linear-gradient(135deg, var(--color-salvia-600) 0%, var(--color-salvia-700) 100%);
+}
+
+.btn-primary:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 8px -2px rgba(82, 110, 93, 0.3);
+}
+
+.btn-secondary {
+    background: #FFFFFF;
+    color: var(--color-salvia-800);
+    font-weight: 600;
+    padding: 0.875rem 1.75rem;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--color-cream-200);
+    box-shadow: var(--shadow-subtle);
+    transition: all var(--duration-fast) var(--ease-out-expo);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    border-color: var(--color-salvia-500);
+    color: var(--color-salvia-600);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+}
+
+.btn-terracota {
+    background: linear-gradient(135deg, var(--color-terracota-500) 0%, var(--color-terracota-600) 100%);
+    color: #FFFFFF;
+    font-weight: 600;
+    padding: 0.875rem 1.75rem;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 14px -3px rgba(208, 122, 88, 0.4);
+    transition: all var(--duration-fast) var(--ease-out-expo);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-terracota:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px -4px rgba(208, 122, 88, 0.45);
+    background: linear-gradient(135deg, var(--color-terracota-600) 0%, var(--color-terracota-700) 100%);
+}
+
+/* -----------------------------------------------------------------------------
+   PRODUCT CARDS ENRIQUECIDAS
+   ----------------------------------------------------------------------------- */
+.product-card {
+    background: var(--surface-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--surface-border);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-subtle);
+    transition: transform var(--duration-normal) var(--ease-out-expo),
+                box-shadow var(--duration-normal) var(--ease-out-expo),
+                border-color var(--duration-normal) ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: rgba(82, 110, 93, 0.25);
+}
+
+.product-image-container {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background-color: var(--color-salvia-50);
+    height: 16rem;
+    margin-bottom: 1rem;
+}
+
+.product-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--duration-slow) var(--ease-out-expo), filter var(--duration-normal) ease;
+}
+
+.product-card:hover .product-image-container img {
+    transform: scale(1.06);
+}
+
+/* Action Overlay (Quick View & Wishlist) */
+.product-actions-overlay {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+.btn-action-round {
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-salvia-800);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    transition: transform var(--duration-fast) var(--ease-out-expo),
+                background var(--duration-fast) ease,
+                color var(--duration-fast) ease;
+    cursor: pointer;
+}
+
+.btn-action-round:hover {
+    transform: scale(1.1);
+    background: #FFFFFF;
+    color: var(--color-terracota-500);
+}
+
+.btn-action-round.active {
+    color: var(--color-terracota-500);
+    background: #FFFFFF;
+}
+
+/* -----------------------------------------------------------------------------
+   BENTO GRID (Sección Beneficios de Vanguardia)
+   ----------------------------------------------------------------------------- */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+    .bento-grid {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+}
+
+.bento-card {
+    background: #FFFFFF;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    box-shadow: var(--shadow-subtle);
+    transition: all var(--duration-normal) var(--ease-out-expo);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.bento-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: rgba(82, 110, 93, 0.3);
+}
+
+.bento-glow {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: var(--radius-full);
+    filter: blur(60px);
+    pointer-events: none;
+    opacity: 0.4;
+    transition: opacity var(--duration-normal) ease;
+}
+
+.bento-card:hover .bento-glow {
+    opacity: 0.7;
+}
+
+/* -----------------------------------------------------------------------------
+   SPLINE 3D VIEWER CONTAINER & FALLBACKS
+   ----------------------------------------------------------------------------- */
+.spline-hero-container {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(244, 247, 244, 0.7) 0%, rgba(248, 236, 230, 0.5) 100%);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--shadow-card);
+}
+
+@media (min-width: 1024px) {
+    .spline-hero-container {
+        height: 540px;
+    }
+}
+
+spline-viewer {
+    width: 100%;
+    height: 100%;
+    display: block;
+    outline: none;
+}
+
+.spline-fallback-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity var(--duration-slow) ease;
+}
+
+.spline-loaded .spline-fallback-layer {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Configurador 3D */
+.pot-configurator-card {
+    background: #FFFFFF;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+}
+
+/* -----------------------------------------------------------------------------
+   MINI-CARRITO DRAWER LATERAL & OVERLAYS
+   ----------------------------------------------------------------------------- */
+.drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(19, 26, 22, 0.55);
+    backdrop-filter: blur(6px);
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-normal) ease;
+}
+
+.drawer-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.drawer-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 440px;
+    background: #FFFFFF;
+    z-index: 70;
+    box-shadow: var(--shadow-drawer);
+    transform: translateX(100%);
+    transition: transform var(--duration-normal) var(--ease-out-expo);
+    display: flex;
+    flex-direction: column;
+}
+
+.drawer-panel.active {
+    transform: translateX(0);
+}
+
+/* -----------------------------------------------------------------------------
+   SKELETON LOADERS & REVEAL ANIMATIONS
+   ----------------------------------------------------------------------------- */
+.skeleton {
+    background: linear-gradient(90deg, #EFECE6 25%, #F7F6F2 50%, #EFECE6 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 650ms var(--ease-out-expo), transform 650ms var(--ease-out-expo);
+}
+
+.reveal-on-scroll.revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stagger delay helper */
+.stagger-1 { transition-delay: 60ms; }
+.stagger-2 { transition-delay: 120ms; }
+.stagger-3 { transition-delay: 180ms; }
+.stagger-4 { transition-delay: 240ms; }
+
+/* Respeto estricto por Reduced Motion (Accesibilidad) */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .reveal-on-scroll {
+        opacity: 1 !important;
+        transform: none !important;
+    }
 }
